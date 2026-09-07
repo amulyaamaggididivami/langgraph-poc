@@ -1,3 +1,11 @@
+---
+daksh:
+  type: handbook
+  subtype: developer
+  stage: "90"
+  module: null
+---
+
 # Developer
 
 This manual is for engineers working in the langgraph-poc codebase. Open it

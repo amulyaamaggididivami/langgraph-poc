@@ -1,3 +1,11 @@
+---
+daksh:
+  type: handbook
+  subtype: admin
+  stage: "90"
+  module: null
+---
+
 # Admin
 
 This manual is for people responsible for configuring and managing

@@ -3,7 +3,7 @@
   "description": "Internal proof-of-concept project exploring LangGraph-based agent workflows.",
   "client": "internal",
   "created": "2026-09-07",
-  "daksh_version": "0.6.1",
+  "daksh_version": "0.4.7",
   "rules": {
     "approvals_per_gate": 1,
     "open_questions": "optional",
@@ -21,42 +21,19 @@
   "modules": [],
   "module_config": {},
   "stages": {
-    "00": {
+    "00+10": {
       "status": "not_started",
-      "mode": "greenfield",
-      "doc_type": "client-context",
       "output": "docs/client-context.md",
       "locked_by": null,
       "doc_hash": null,
       "approvals": [],
-      "revision_history": [
-        {
-          "date": "2026-09-07",
-          "reason": "Split from combined 00+10 stage during Daksh 0.4.7→0.6.1 upgrade — no prior content existed for either half."
-        }
-      ]
-    },
-    "10": {
-      "status": "not_started",
-      "mode": "greenfield",
-      "doc_type": "vision",
-      "output": "docs/vision.md",
-      "locked_by": null,
-      "doc_hash": null,
-      "approvals": [],
-      "revision_history": [
-        {
-          "date": "2026-09-07",
-          "reason": "Split from combined 00+10 stage during Daksh 0.4.7→0.6.1 upgrade — no prior content existed for either half."
-        }
-      ]
+      "revision_history": []
     },
     "20": {
-      "status": "needs_approval",
-      "doc_type": "business-requirements",
+      "status": "pending_approval",
       "output": "docs/business-requirements.md",
       "locked_by": null,
-      "doc_hash": "c36791338c229ec2ee8c01ceff091b99fcdabe642bf9fa9d7c36e94a09b4f380",
+      "doc_hash": "c7efeddc71d9838a8f76b564d024607b7bde55bd57bad240a27d9e3d1eee6b83",
       "approvals": [],
       "revision_history": [
         {
@@ -86,49 +63,19 @@
         {
           "date": "2026-09-07",
           "note": "Resolved oq-05: first-write-wins (decision-08) - whichever Approve/Reject request resumes the thread first is final; a later request has no paused interrupt left to act on. All 5 open questions now resolved. Short hash: lPUw15wMpt."
-        },
-        {
-          "date": "2026-09-07",
-          "reason": "Daksh 0.4.7→0.6.1 upgrade added a daksh.type frontmatter block to the top of the file (structural only, no content change). doc_hash recomputed accordingly. Short hash: 7WfzAiYvWL."
-        },
-        {
-          "date": "2026-09-07",
-          "note": "Enhanced by /daksh enhance 0.6.1: added [derived/observed] provenance stamps to Stakeholders, Functional Requirements, Acceptance Criteria, and Data Models sections; added a Risks and Assumptions section (cross-references existing statements, 3 items marked needs-authoring). Status moved to needs_approval. Short hash: kKrGvfxyzM."
         }
       ]
     },
-    "30a": {
+    "30": {
       "status": "not_started",
-      "mode": "greenfield",
-      "doc_type": "architecture",
-      "output": "docs/system-architecture.md",
-      "locked_by": null,
-      "doc_hash": null,
-      "approvals": [],
-      "revision_history": [
-        {
-          "date": "2026-09-07",
-          "reason": "New stage added in Daksh 0.6 (project architecture, ahead of Roadmap) — did not exist in 0.4.7."
-        }
-      ]
-    },
-    "30b": {
-      "status": "not_started",
-      "doc_type": "roadmap",
       "output": "docs/implementation-roadmap.md",
       "locked_by": null,
       "doc_hash": null,
       "approvals": [],
-      "revision_history": [
-        {
-          "date": "2026-09-07",
-          "reason": "Renamed from stage 30 during Daksh 0.4.7→0.6.1 upgrade — no prior content existed."
-        }
-      ]
+      "revision_history": []
     },
-    "90": {
+    "60": {
       "status": "not_started",
-      "doc_type": "handbook",
       "output": [
         "handbook/end-user.md",
         "handbook/admin.md",
@@ -138,37 +85,12 @@
       "locked_by": null,
       "doc_hash": null,
       "approvals": [],
-      "revision_history": [
-        {
-          "date": "2026-09-07",
-          "reason": "Renamed from stage 60 during Daksh 0.4.7→0.6.1 upgrade — no prior content existed. daksh.type frontmatter added to all 4 handbook files (structural only)."
-        }
-      ]
+      "revision_history": []
     }
   },
   "contracts": {},
   "traceability": {},
   "change_records": {},
-  "last_enhanced_version": "0.6.1",
-  "doc_gaps": [
-    {
-      "stage": "90",
-      "doc_path": "handbook/end-user.md, handbook/admin.md, handbook/ops.md, handbook/developer.md",
-      "gap": "Placeholder-only content beyond headings",
-      "severity": "low",
-      "skipped": true,
-      "last_scanned_on": "2026-09-07"
-    }
-  ],
-  "enhance_skipped": [
-    {
-      "what": "Handbook placeholder-only content",
-      "stage": "90",
-      "skipped_on": "2026-09-07",
-      "dismissed": false,
-      "reason": "Expected at this point in the pipeline — implementation hasn't started yet."
-    }
-  ],
   "risk_register": [
     {
       "risk_id": "RISK-001",

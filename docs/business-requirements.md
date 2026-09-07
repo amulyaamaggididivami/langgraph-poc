@@ -1,3 +1,11 @@
+---
+daksh:
+  type: business-requirements
+  subtype: null
+  stage: "20"
+  module: null
+---
+
 # Business Requirements
 
 This [BRD](glossary#brd) turns the team's own research write-up —
@@ -175,6 +183,8 @@ metric-04 -> goal-03 | relation: watches
 
 ## Stakeholders
 
+`[derived/observed · src:docs/AI_Data_Analysis_Orchestration_POC.md §6]`
+
 | Role | Type | Audience | Description |
 |---|---|---|---|
 | Business User | Primary | `end_customer` | Submits natural-language questions and consumes the approved answer. Not yet interviewed for this POC — `status: placeholder` (see [Open Questions](#open-questions)). |
@@ -281,6 +291,8 @@ flowchart TD
 
 ## Functional Requirements
 
+`[derived/observed · src:docs/AI_Data_Analysis_Orchestration_POC.md §11]`
+
 Every FR below traces to one of the three use cases; none are orphaned.
 
 | ID | Requirement | Traces to |
@@ -302,6 +314,9 @@ Every FR below traces to one of the three use cases; none are orphaned.
 | FR-015 | The workflow shall support resuming from persisted state, keyed by the run's thread identifier, after an interruption. | UC-003 |
 
 ## Acceptance Criteria
+
+Each AC operationalizes one FR into a single testable condition.
+`[derived/observed · src:docs/AI_Data_Analysis_Orchestration_POC.md §11, §15]`
 
 | ID | Criterion | For |
 |---|---|---|
@@ -349,6 +364,8 @@ execution order, tool outputs, calculation results, synthesis, human
 interruption, approval decision, and workflow resumption (metric-02).
 
 ## Data Models
+
+`[derived/observed · src:docs/AI_Data_Analysis_Orchestration_POC.md §12]`
 
 Three shapes carry state through the workflow: a `Plan` the Planner
 emits, the `Task` entries inside it, and the `WorkflowState` the
@@ -459,6 +476,28 @@ of decision-07 and is now resolved too:
 > edge.
 
 No open questions remain unresolved in this revision.
+
+## Risks and Assumptions
+
+<!-- needs authoring: this section did not exist before the Daksh 0.6.1
+enhance scan added it. No risk/assumption log existed upstream — the
+source research doc has none either. The three items below cross-reference
+assumptions already stated elsewhere in this BRD; each still needs a PTL
+call on mitigation or acceptance. -->
+
+- **Trusted internal demo audience, not public.** No production-grade
+  authentication/authorization exists (constraint-03); Reviewer identity
+  is never verified (decision-07). See
+  [Non-Functional Requirements](#non-functional-requirements) — Security.
+  <!-- needs authoring: mitigation / acceptance owner -->
+- **No numeric performance SLA defined for the POC.** See
+  [Non-Functional Requirements](#non-functional-requirements) — Performance.
+  <!-- needs authoring: is this acceptable for the sign-off audience? -->
+- **Concurrent Approve/Reject on the same thread resolves as first-write-wins
+  (decision-08), not prevented.** The losing request has no paused
+  interrupt left to act on and receives no explicit message back to the
+  reviewer explaining why. See [Open Questions](#open-questions) — oq-05.
+  <!-- needs authoring: does the Reviewer need an explicit "already resolved" message? -->
 
 ## Approval
 

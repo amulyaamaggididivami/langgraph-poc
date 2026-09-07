@@ -1,3 +1,11 @@
+---
+daksh:
+  type: handbook
+  subtype: ops
+  stage: "90"
+  module: null
+---
+
 # Ops
 
 This manual is for the people who keep langgraph-poc running in a live

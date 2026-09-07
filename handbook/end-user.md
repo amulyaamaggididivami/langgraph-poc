@@ -1,3 +1,11 @@
+---
+daksh:
+  type: handbook
+  subtype: end-user
+  stage: "90"
+  module: null
+---
+
 # End User
 
 This manual is for people using the langgraph-poc product day to day. Open it

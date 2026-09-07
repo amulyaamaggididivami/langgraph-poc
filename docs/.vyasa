@@ -5,6 +5,7 @@ order = [
   "client-context.md",
   "vision.md",
   "business-requirements.md",
+  "system-architecture.md",
   "implementation-roadmap.md",
   "implementation",
   "glossary.md",

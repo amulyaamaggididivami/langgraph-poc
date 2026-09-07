@@ -109,31 +109,73 @@
       ]
     },
     "30a": {
-      "status": "not_started",
+      "status": "pending_approval",
       "mode": "greenfield",
       "doc_type": "architecture",
       "output": "docs/system-architecture.md",
       "locked_by": null,
-      "doc_hash": null,
+      "doc_hash": {
+        "docs/system-architecture.md": "c3deb109e3f3cc8a0ada848a27518228e55e8986bead26adc99ec43d21f589f4"
+      },
       "approvals": [],
       "revision_history": [
         {
           "date": "2026-09-07",
           "reason": "New stage added in Daksh 0.6 (project architecture, ahead of Roadmap) \u2014 did not exist in 0.4.7."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "First-author Architecture doc, grounded in the approved BRD and the live backend/frontend code. Single ORCHESTRATION module (decision-09), local Postgres via Docker with dummy credentials pending real values (decision-10), no deployment target (decision-11). Flagged drift: BRD decision-06/decision-07 commit to Postgres checkpointing and a /review surface, neither of which exist in code yet. Short hash: xoXBdUZMZa."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Resolved all 3 open questions without touching code: decision-12 added (Reviewer surface is a separate route family, never a shared endpoint); Postgres dummy-credentials item reframed as a PTL to-do under decision-10, not an ambiguity; testing-coverage item reframed as a deliberate deferral to stage 50b. Open Questions section now empty by design. Short hash: 9pxgC82KqR."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "PTL deleted the echo-stub scaffold (backend/app/graph/, backend/app/api/routes/chat.py, backend/app/schemas/chat.py) as project-setup boilerplate, not real work \u2014 main.py updated to drop the chat router; backend verified to still import cleanly with only the health router. Doc updated throughout to describe the Chat Route, Planner, Orchestration Layer, and Chat HTTP API as planned/not-yet-built rather than stubbed. Noted frontend/src/components/ChatForm.tsx still posts to /chat and will 404 until the route is rebuilt. Short hash: LMUoc1Z3sa."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Added decision-13: both /chat and /review communicate via the official ag-ui-protocol SDK over WebSocket, not plain REST. Renamed Chat HTTP API to Chat AG-UI Channel, added a new Review AG-UI Channel interface and comp-review-route component, grouped all three interfaces together, added ag-ui-protocol rows to Technology Baseline (not yet installed on either side). Short hash: bYEyUv8T8c."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Verified ag-ui-protocol/LangGraph compatibility against published package metadata (PyPI/npm): version-compatible via the correct package (ag-ui-langgraph, needs langgraph>=0.6.0,<2 and langchain-core>=0.3.0, both satisfied; langchain itself still needs adding). But WebSocket is not a built-in transport in the official SDKs \u2014 only SSE ships out of the box. Revised decision-13 from WebSocket to SSE; updated all interface/component/Technology Baseline references accordingly. Short hash: kRhQzDk8Qt."
         }
       ]
     },
     "30b": {
-      "status": "not_started",
+      "status": "approved",
+      "mode": "greenfield",
       "doc_type": "roadmap",
       "output": "docs/implementation-roadmap.md",
       "locked_by": null,
-      "doc_hash": null,
-      "approvals": [],
+      "doc_hash": {
+        "docs/implementation-roadmap.md": "de6d1a5bcbcd95cd239f7792952462cc8f3d32c6e38972cfeb9085a03773e382"
+      },
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/implementation-roadmap.md": "de6d1a5bcbcd95cd239f7792952462cc8f3d32c6e38972cfeb9085a03773e382"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",
           "reason": "Renamed from stage 30 during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "First-author Roadmap doc, grounded in the approved BRD and system-architecture.md (still pending_approval, 0/1 \u2014 PTL chose to proceed anyway). Single-module sequential build order across 3 weeks/milestones (decision-14 through decision-18), 12 build steps reusing BRD FR IDs, 9 named risks. Module registration deferred per this stage's own rule (register on approval, not on draft) \u2014 manifest.modules stays empty until 30b is approved. Short hash: 6LMWwIrdKu."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Synced with architecture's decision-13 revision (WebSocket \u2192 SSE, verified against published package metadata): risk-03 narrowed to the one real residual gap (langchain not yet a dependency), risk-09 marked retired (never materialized \u2014 decision-13 changed before any WebSocket code was written), decision-16 and steps 01e/02d updated to say SSE. Short hash: AUdxbalBs7."
         }
       ]
     },
@@ -204,6 +246,15 @@
       "stage": "30a",
       "reason": "Prior stage 20 approved: 0/1",
       "detected_at": "2026-09-07T11:14:02.634205+00:00",
+      "status": "open",
+      "acknowledged_by": null,
+      "acknowledged_at": null
+    },
+    {
+      "risk_id": "RISK-004",
+      "stage": "30b",
+      "reason": "Prior stage 30a approved: 0/1",
+      "detected_at": "2026-09-07T11:53:11.864677+00:00",
       "status": "open",
       "acknowledged_by": null,
       "acknowledged_at": null

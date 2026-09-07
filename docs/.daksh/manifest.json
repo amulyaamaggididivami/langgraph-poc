@@ -406,17 +406,32 @@
       ]
     },
     "50c:ORCHESTRATION": {
-      "status": "not_started",
+      "status": "approved",
       "mode": "greenfield",
       "doc_type": "tasks",
       "output": "docs/implementation/ORCHESTRATION/tasks.md",
       "locked_by": null,
-      "doc_hash": null,
-      "approvals": [],
+      "doc_hash": {
+        "docs/implementation/ORCHESTRATION/tasks.md": "2e23e08895643620ce47e1f96a39b96c147c7d75999ad58efd4fcd2a5956df37"
+      },
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/implementation/ORCHESTRATION/tasks.md": "2e23e08895643620ce47e1f96a39b96c147c7d75999ad58efd4fcd2a5956df37"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",
           "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "First-author Tasks. 28 tasks (TASK-ORCHESTRATION-001..028) across the roadmap's three-week build order; every one of the 27 TEST-ORCHESTRATION-NNN Test IDs appears in at least one task's Traces to field, no exceptions. TASK-ORCHESTRATION-021 is a contract-hardening task (author missing business-data-table Persistence Constraints in trd.md) per this stage's TRD-contract-gate rule, since trd.md's own Open Questions left that schema unauthored; TASK-ORCHESTRATION-022 (schema implementation) depends on it. Two spikes (TASK-ORCHESTRATION-001, -005) validate ag-ui-langgraph+Gemini and deepagents checkpoint-sharing before the real implementation tasks that depend on them. Short hash: ZRW4gwpRUQ."
         }
       ]
     },
@@ -462,7 +477,10 @@
         "SS-ORCHESTRATION-001",
         "SY-ORCHESTRATION-001"
       ],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-003",
+        "TASK-ORCHESTRATION-012"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -473,7 +491,10 @@
         "SS-ORCHESTRATION-004",
         "SY-ORCHESTRATION-004"
       ],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-003",
+        "TASK-ORCHESTRATION-012"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -481,7 +502,10 @@
     },
     "TEST-ORCHESTRATION-003": {
       "parent": "TRD-ORCHESTRATION-004",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-011",
+        "TASK-ORCHESTRATION-020"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -489,7 +513,10 @@
     },
     "TEST-ORCHESTRATION-004": {
       "parent": "TRD-ORCHESTRATION-007",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-006",
+        "TASK-ORCHESTRATION-012"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -497,7 +524,10 @@
     },
     "TEST-ORCHESTRATION-005": {
       "parent": "invariant-task-status-closed",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-003",
+        "TASK-ORCHESTRATION-012"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -505,7 +535,10 @@
     },
     "TEST-ORCHESTRATION-006": {
       "parent": "SY-ORCHESTRATION-006",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-007",
+        "TASK-ORCHESTRATION-012"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -513,7 +546,10 @@
     },
     "TEST-ORCHESTRATION-007": {
       "parent": "FR-008",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-008",
+        "TASK-ORCHESTRATION-012"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -521,7 +557,11 @@
     },
     "TEST-ORCHESTRATION-008": {
       "parent": "constraint-01",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-004",
+        "TASK-ORCHESTRATION-012",
+        "TASK-ORCHESTRATION-023"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -529,7 +569,10 @@
     },
     "TEST-ORCHESTRATION-009": {
       "parent": "TRD-ORCHESTRATION-001",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-013",
+        "TASK-ORCHESTRATION-020"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -540,7 +583,10 @@
         "SY-ORCHESTRATION-012",
         "TRD-ORCHESTRATION-002"
       ],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-018",
+        "TASK-ORCHESTRATION-020"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -548,7 +594,11 @@
     },
     "TEST-ORCHESTRATION-011": {
       "parent": "TRD-ORCHESTRATION-003",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-001",
+        "TASK-ORCHESTRATION-009",
+        "TASK-ORCHESTRATION-012"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -556,7 +606,11 @@
     },
     "TEST-ORCHESTRATION-012": {
       "parent": "TRD-ORCHESTRATION-005",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-015",
+        "TASK-ORCHESTRATION-016",
+        "TASK-ORCHESTRATION-020"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -564,7 +618,11 @@
     },
     "TEST-ORCHESTRATION-013": {
       "parent": "TRD-ORCHESTRATION-006",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-015",
+        "TASK-ORCHESTRATION-017",
+        "TASK-ORCHESTRATION-020"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -572,7 +630,11 @@
     },
     "TEST-ORCHESTRATION-014": {
       "parent": "TRD-ORCHESTRATION-007",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-005",
+        "TASK-ORCHESTRATION-006",
+        "TASK-ORCHESTRATION-012"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -580,7 +642,9 @@
     },
     "TEST-ORCHESTRATION-015": {
       "parent": "TRD-ORCHESTRATION-008",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-022"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -588,7 +652,11 @@
     },
     "TEST-ORCHESTRATION-016": {
       "parent": "TRD-ORCHESTRATION-010",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-017",
+        "TASK-ORCHESTRATION-020",
+        "TASK-ORCHESTRATION-028"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -600,7 +668,10 @@
         "SY-ORCHESTRATION-001",
         "SY-ORCHESTRATION-007"
       ],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-012",
+        "TASK-ORCHESTRATION-025"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -612,7 +683,10 @@
         "SY-ORCHESTRATION-002",
         "SY-ORCHESTRATION-007"
       ],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-020",
+        "TASK-ORCHESTRATION-026"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -624,7 +698,10 @@
         "SY-ORCHESTRATION-003",
         "TRD-ORCHESTRATION-009"
       ],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-019",
+        "TASK-ORCHESTRATION-020"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -636,7 +713,10 @@
         "SY-ORCHESTRATION-004",
         "SY-ORCHESTRATION-007"
       ],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-020",
+        "TASK-ORCHESTRATION-026"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -644,7 +724,10 @@
     },
     "TEST-ORCHESTRATION-021": {
       "parent": "SY-ORCHESTRATION-005",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-020",
+        "TASK-ORCHESTRATION-026"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -652,7 +735,10 @@
     },
     "TEST-ORCHESTRATION-022": {
       "parent": "SY-ORCHESTRATION-008",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-020",
+        "TASK-ORCHESTRATION-026"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -660,7 +746,9 @@
     },
     "TEST-ORCHESTRATION-023": {
       "parent": "SY-ORCHESTRATION-009",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-003"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -668,7 +756,10 @@
     },
     "TEST-ORCHESTRATION-024": {
       "parent": "SY-ORCHESTRATION-010",
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-019",
+        "TASK-ORCHESTRATION-020"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -679,7 +770,10 @@
         "SY-ORCHESTRATION-011",
         "TRD-ORCHESTRATION-009"
       ],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-019",
+        "TASK-ORCHESTRATION-020"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -687,7 +781,9 @@
     },
     "TEST-ORCHESTRATION-026": {
       "parent": [],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-027"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
@@ -695,7 +791,9 @@
     },
     "TEST-ORCHESTRATION-027": {
       "parent": [],
-      "children": [],
+      "children": [
+        "TASK-ORCHESTRATION-010"
+      ],
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",

@@ -3,15 +3,13 @@
 ## Backend
 
 ```
-cd backend
-uv run uvicorn app.main:app --reload
+make backend
 ```
 Runs on `http://localhost:8000`. Swagger UI: `http://localhost:8000/docs`.
 
 ## Frontend
 
 ```
-cd frontend
-npm run dev
+make frontend
 ```
 Runs on `http://localhost:5173`.

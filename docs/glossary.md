@@ -4,6 +4,31 @@ Daksh process terms used across this project's docs. Domain-specific
 vocabulary (entity names, status terms, roles) lives separately in
 `docs/domain-glossary.md`.
 
+## Vision
+
+The stage-10 Daksh artifact that locks the product thesis — what the
+one deep module is, who it's for, what's out of scope, and what would
+invalidate the thesis — before the BRD decomposes it (or, as in this
+project, before a BRD written directly from a source doc is grounded
+against it retroactively).
+
+## Deep Module
+
+A module whose interface is small relative to the behavior it hides.
+Tested with the deletion test: imagine removing the module — if its
+complexity reappears in every caller, it was deep and earned its
+existence; if the complexity simply vanishes, it was a pass-through
+and should not have been a separate module.
+
+## Leap-of-Faith Assumption
+
+A belief a Vision document rests on that, if false, invalidates the
+product's premise rather than one feature of it. Distinct from an
+ordinary [Assumption](business-requirements.md#data-models) recorded
+against a single decision — a leap-of-faith assumption is unvalidated
+by definition at the point Vision is written; the product exists partly
+to test it.
+
 ## BRD
 
 Business Requirements Document — the stage-20 Daksh artifact that

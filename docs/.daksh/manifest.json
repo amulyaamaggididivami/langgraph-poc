@@ -46,22 +46,46 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Split from combined 00+10 stage during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed for either half."
+          "reason": "Split from combined 00+10 stage during Daksh 0.4.7→0.6.1 upgrade — no prior content existed for either half."
         }
       ]
     },
     "10": {
-      "status": "not_started",
+      "status": "pending_approval",
       "mode": "greenfield",
       "doc_type": "vision",
       "output": "docs/vision.md",
       "locked_by": null,
-      "doc_hash": null,
+      "doc_hash": "28b21fc63fd374d1da27be78028897fcc253e727d7022b24c6106121122ffccf",
       "approvals": [],
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Split from combined 00+10 stage during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed for either half."
+          "reason": "Split from combined 00+10 stage during Daksh 0.4.7→0.6.1 upgrade — no prior content existed for either half."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "First-author Vision, backfilled after the BRD already existed (stage 00 client-context.md never produced; missing-upstream risk acknowledged, same precedent as stage 20). Grounded in business-requirements.md and AI_Data_Analysis_Orchestration_POC.md. Reuses BRD's goal/decision/user IDs verbatim (same entities); adds the one-deep-module thesis and 3 new vision-altitude open questions (oq-06..08). Short hash: uzJQVVdqj4."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Reduced Approval block to 1 slot, matching manifest.rules.approvals_per_gate:1 (was incorrectly copied as 2 from the stage template). Short hash: 3j6ChmlYXT."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Trimmed opening paragraph to drop the backfill/gate-skip narrative per PTL request; the historical record stays in this stage's revision_history, not in doc prose. Short hash: Fi55pTKEFl."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Reframed decision-02, decision-05, decision-07 as settled/final POC scope per PTL correction, not open risks or questions. Replaced risk-01/risk-03 with risk-04 (LLM calculation correctness) and risk-05 (observability legibility); replaced oq-07/oq-08 with oq-09 (representative-question sign-off) and oq-10 (real vs synthetic demo data) to keep genuine, unaddressed uncertainty rather than second-guessing closed decisions. Short hash: jHxsBhMwEZ."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Resolved oq-09 and oq-10 per PTL input: decision-09 (real DB data, not synthetic) decides oq-10; decision-10 (representative-question list fixed at implementation stage, not vision) decides oq-09. Kept both OQ nodes in the graph with incoming decides edges, same pattern the BRD used for its own oq-01..05, rather than deleting them. oq-06 remains the only genuinely open item. Short hash: vR3ZnnUvcG."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Resolved oq-06 per PTL request: decision-11 scopes generalization-testing out of this POC entirely (does not claim the pattern generalizes, just that this engagement won't test it). All 3 vision-raised open questions now closed by decision; assumption-04 stays explicitly unvalidated since decision-11 settles scope, not the underlying belief. Short hash: 9eJTI5V322."
         }
       ]
     },
@@ -114,7 +138,7 @@
         },
         {
           "date": "2026-09-07",
-          "reason": "Daksh 0.4.7\u21920.6.1 upgrade added a daksh.type frontmatter block to the top of the file (structural only, no content change). doc_hash recomputed accordingly. Short hash: 7WfzAiYvWL."
+          "reason": "Daksh 0.4.7→0.6.1 upgrade added a daksh.type frontmatter block to the top of the file (structural only, no content change). doc_hash recomputed accordingly. Short hash: 7WfzAiYvWL."
         },
         {
           "date": "2026-09-07",
@@ -135,7 +159,7 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "New stage added in Daksh 0.6 (project architecture, ahead of Roadmap) \u2014 did not exist in 0.4.7."
+          "reason": "New stage added in Daksh 0.6 (project architecture, ahead of Roadmap) — did not exist in 0.4.7."
         },
         {
           "date": "2026-09-07",
@@ -147,7 +171,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "PTL deleted the echo-stub scaffold (backend/app/graph/, backend/app/api/routes/chat.py, backend/app/schemas/chat.py) as project-setup boilerplate, not real work \u2014 main.py updated to drop the chat router; backend verified to still import cleanly with only the health router. Doc updated throughout to describe the Chat Route, Planner, Orchestration Layer, and Chat HTTP API as planned/not-yet-built rather than stubbed. Noted frontend/src/components/ChatForm.tsx still posts to /chat and will 404 until the route is rebuilt. Short hash: LMUoc1Z3sa."
+          "note": "PTL deleted the echo-stub scaffold (backend/app/graph/, backend/app/api/routes/chat.py, backend/app/schemas/chat.py) as project-setup boilerplate, not real work — main.py updated to drop the chat router; backend verified to still import cleanly with only the health router. Doc updated throughout to describe the Chat Route, Planner, Orchestration Layer, and Chat HTTP API as planned/not-yet-built rather than stubbed. Noted frontend/src/components/ChatForm.tsx still posts to /chat and will 404 until the route is rebuilt. Short hash: LMUoc1Z3sa."
         },
         {
           "date": "2026-09-07",
@@ -155,7 +179,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "Verified ag-ui-protocol/LangGraph compatibility against published package metadata (PyPI/npm): version-compatible via the correct package (ag-ui-langgraph, needs langgraph>=0.6.0,<2 and langchain-core>=0.3.0, both satisfied; langchain itself still needs adding). But WebSocket is not a built-in transport in the official SDKs \u2014 only SSE ships out of the box. Revised decision-13 from WebSocket to SSE; updated all interface/component/Technology Baseline references accordingly. Short hash: kRhQzDk8Qt."
+          "note": "Verified ag-ui-protocol/LangGraph compatibility against published package metadata (PyPI/npm): version-compatible via the correct package (ag-ui-langgraph, needs langgraph>=0.6.0,<2 and langchain-core>=0.3.0, both satisfied; langchain itself still needs adding). But WebSocket is not a built-in transport in the official SDKs — only SSE ships out of the box. Revised decision-13 from WebSocket to SSE; updated all interface/component/Technology Baseline references accordingly. Short hash: kRhQzDk8Qt."
         }
       ]
     },
@@ -181,15 +205,15 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Renamed from stage 30 during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed."
+          "reason": "Renamed from stage 30 during Daksh 0.4.7→0.6.1 upgrade — no prior content existed."
         },
         {
           "date": "2026-09-07",
-          "note": "First-author Roadmap doc, grounded in the approved BRD and system-architecture.md (still pending_approval, 0/1 \u2014 PTL chose to proceed anyway). Single-module sequential build order across 3 weeks/milestones (decision-14 through decision-18), 12 build steps reusing BRD FR IDs, 9 named risks. Module registration deferred per this stage's own rule (register on approval, not on draft) \u2014 manifest.modules stays empty until 30b is approved. Short hash: 6LMWwIrdKu."
+          "note": "First-author Roadmap doc, grounded in the approved BRD and system-architecture.md (still pending_approval, 0/1 — PTL chose to proceed anyway). Single-module sequential build order across 3 weeks/milestones (decision-14 through decision-18), 12 build steps reusing BRD FR IDs, 9 named risks. Module registration deferred per this stage's own rule (register on approval, not on draft) — manifest.modules stays empty until 30b is approved. Short hash: 6LMWwIrdKu."
         },
         {
           "date": "2026-09-07",
-          "note": "Synced with architecture's decision-13 revision (WebSocket \u2192 SSE, verified against published package metadata): risk-03 narrowed to the one real residual gap (langchain not yet a dependency), risk-09 marked retired (never materialized \u2014 decision-13 changed before any WebSocket code was written), decision-16 and steps 01e/02d updated to say SSE. Short hash: AUdxbalBs7."
+          "note": "Synced with architecture's decision-13 revision (WebSocket → SSE, verified against published package metadata): risk-03 narrowed to the one real residual gap (langchain not yet a dependency), risk-09 marked retired (never materialized — decision-13 changed before any WebSocket code was written), decision-16 and steps 01e/02d updated to say SSE. Short hash: AUdxbalBs7."
         }
       ]
     },
@@ -210,7 +234,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "First-author Solution doc. Reuses BRD flows (flow-01/02/03), users, and goal-01/goal-03 by cross-doc ID; adds flow-04 (unsupported-question decline, not covered by any BRD use case), 8 solution-level requirements, 3 new integration points (business DB, LLM provider, reused checkpoint DB), 4 decisions (decision-19..22), and 6 constraints. Business-state narrative (Request Lifecycle) kept as prose/Mermaid only, not graph nodes \u2014 Event/StateMachine kinds belong to System (30d) per cognition-architecture.md's stage table, not Solution (30c); caught and corrected before finalizing. Short hash: RWJt3byYhA."
+          "note": "First-author Solution doc. Reuses BRD flows (flow-01/02/03), users, and goal-01/goal-03 by cross-doc ID; adds flow-04 (unsupported-question decline, not covered by any BRD use case), 8 solution-level requirements, 3 new integration points (business DB, LLM provider, reused checkpoint DB), 4 decisions (decision-19..22), and 6 constraints. Business-state narrative (Request Lifecycle) kept as prose/Mermaid only, not graph nodes — Event/StateMachine kinds belong to System (30d) per cognition-architecture.md's stage table, not Solution (30c); caught and corrected before finalizing. Short hash: RWJt3byYhA."
         },
         {
           "date": "2026-09-07",
@@ -248,7 +272,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "First-author System doc. Formalized the Request Lifecycle as a closed StateMachine (7 states, guarded transitions, per-state invariants) \u2014 corrects Solution's narrative diagram into a mechanical one, keeping the AwaitingReview-is-the-pause-point fix. Added 8 Events with payload_shape, 5 DataModels, 3 logical Interfaces (extended with failure_shape), 4 business-rule invariants, 3 quality budgets tightening Architecture's constraints, 12 testable SY-ORCHESTRATION behaviors tracing to Solution's SS-* flows, and reused the 6 Architecture components by cross-doc ID. Two open questions surfaced (checkpoint pruning policy, exact timeout durations) deferred to TRD. Short hash: UR4db8EL86."
+          "note": "First-author System doc. Formalized the Request Lifecycle as a closed StateMachine (7 states, guarded transitions, per-state invariants) — corrects Solution's narrative diagram into a mechanical one, keeping the AwaitingReview-is-the-pause-point fix. Added 8 Events with payload_shape, 5 DataModels, 3 logical Interfaces (extended with failure_shape), 4 business-rule invariants, 3 quality budgets tightening Architecture's constraints, 12 testable SY-ORCHESTRATION behaviors tracing to Solution's SS-* flows, and reused the 6 Architecture components by cross-doc ID. Two open questions surfaced (checkpoint pruning policy, exact timeout durations) deferred to TRD. Short hash: UR4db8EL86."
         }
       ]
     },
@@ -349,7 +373,7 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Renamed from stage 60 during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed. daksh.type frontmatter added to all 4 handbook files (structural only)."
+          "reason": "Renamed from stage 60 during Daksh 0.4.7→0.6.1 upgrade — no prior content existed. daksh.type frontmatter added to all 4 handbook files (structural only)."
         }
       ]
     }
@@ -374,7 +398,7 @@
       "stage": "90",
       "skipped_on": "2026-09-07",
       "dismissed": false,
-      "reason": "Expected at this point in the pipeline \u2014 implementation hasn't started yet."
+      "reason": "Expected at this point in the pipeline — implementation hasn't started yet."
     }
   ],
   "risk_register": [
@@ -410,6 +434,15 @@
       "stage": "30b",
       "reason": "Prior stage 30a approved: 0/1",
       "detected_at": "2026-09-07T11:53:11.864677+00:00",
+      "status": "open",
+      "acknowledged_by": null,
+      "acknowledged_at": null
+    },
+    {
+      "risk_id": "RISK-005",
+      "stage": "10",
+      "reason": "Prior stage 00 approved: 0/1",
+      "detected_at": "2026-09-07T12:08:21.917297+00:00",
       "status": "open",
       "acknowledged_by": null,
       "acknowledged_at": null

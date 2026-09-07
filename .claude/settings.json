@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 /Users/ramya/.claude/skills/daksh/scripts/daksh-stamp.py 10 --note \"Resolved oq-09 and oq-10 per PTL input: decision-09 \\(real DB data, not synthetic\\) decides oq-10; decision-10 \\(representative-question list fixed at implementation stage, not vision\\) decides oq-09. Kept both OQ nodes in the graph with incoming decides edges, same pattern the BRD used for its own oq-01..05, rather than deleting them. oq-06 remains the only genuinely open item.\")"
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "project": "langgraph-poc",
+  "description": "Internal proof-of-concept project exploring LangGraph-based agent workflows.",
+  "client": "internal",
+  "created": "2026-09-07",
+  "daksh_version": "0.4.7",
+
+  "rules": {
+    "approvals_per_gate": 1,
+    "open_questions": "optional",
+    "cross_module_contracts": false,
+    "jira_sync": "optional",
+    "tend_frequency": "end_of_project"
+  },
+
+  "team_roster": [
+    {
+      "name": "Vara",
+      "role": "PTL",
+      "email": "vara@divami.com"
+    }
+  ],
+
+  "modules": [],
+
+  "module_config": {},
+
+  "stages": {
+    "00+10": {
+      "status": "not_started",
+      "output": "docs/client-context.md",
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": []
+    },
+    "20": {
+      "status": "not_started",
+      "output": "docs/business-requirements.md",
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": []
+    },
+    "30": {
+      "status": "not_started",
+      "output": "docs/implementation-roadmap.md",
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": []
+    },
+    "60": {
+      "status": "not_started",
+      "output": ["handbook/end-user.md", "handbook/admin.md", "handbook/ops.md", "handbook/developer.md"],
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": []
+    }
+  },
+
+  "contracts": {},
+
+  "traceability": {},
+
+  "change_records": {},
+
+  "risk_register": [],
+
+  "required_skills": ["doc-narrator", "vyasa"],
+
+  "jira": {
+    "project_key": null,
+    "board_id": null,
+    "synced_at": null,
+    "ticket_map": {},
+    "user_map": {},
+    "workflow_preset": "divami-engineering-jira-standard",
+    "done_statuses": ["Done", "Done - Not Reproducible", "Done - Not A Bug"]
+  }
+}

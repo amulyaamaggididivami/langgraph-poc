@@ -1,0 +1,56 @@
+{
+  "node_color_palettes": {
+    "kind": {
+      "goal": "#f97316",
+      "decision": "#6366f1",
+      "openquestion": "#14b8a6",
+      "component": "#0ea5e9",
+      "interface": "#0284c7",
+      "flow": "#a855f7",
+      "statemachine": "#c026d3",
+      "event": "#d946ef",
+      "task": "#f59e0b",
+      "milestone": "#06b6d4",
+      "environment": "#0d9488",
+      "infrastructure": "#1d4ed8",
+      "pipeline": "#475569",
+      "deployment": "#ec4899",
+      "requirement": "#84cc16",
+      "constraint": "#65a30d",
+      "invariant": "#15803d",
+      "assumption": "#22c55e",
+      "datamodel": "#0891b2",
+      "metric": "#8b5cf6",
+      "risk": "#e11d48",
+      "test": "#10b981",
+      "owner": "#f59e0b",
+      "user": "#7c3aed"
+    },
+    "audience": {
+      "delivery": "#7c3aed",
+      "client": "#2563eb",
+      "end_customer": "#f59e0b"
+    }
+  },
+  "edge_color_palettes": {
+    "relation": {
+      "enables": "#2563eb",
+      "decomposes_into": "#0ea5e9",
+      "produces": "#16a34a",
+      "serves": "#22c55e",
+      "governs": "#4338ca",
+      "experiences": "#c084fc",
+      "sets up": "#7c3aed",
+      "runs": "#a855f7",
+      "threatens": "#e11d48",
+      "decides": "#f59e0b",
+      "replaces": "#737373",
+      "deploys_to": "#ec4899",
+      "runs_on": "#1d4ed8",
+      "lives_in": "#0d9488",
+      "proves": "#84cc16",
+      "watches": "#06b6d4",
+      "owns": "#6b7280"
+    }
+  }
+}

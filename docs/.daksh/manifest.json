@@ -16,6 +16,16 @@
       "name": "Vara",
       "role": "PTL",
       "email": "vara@divami.com"
+    },
+    {
+      "name": "Engineer A",
+      "role": "Developer",
+      "email": null
+    },
+    {
+      "name": "Engineer B",
+      "role": "Developer",
+      "email": null
     }
   ],
   "modules": [
@@ -440,6 +450,10 @@
         {
           "date": "2026-09-07",
           "note": "First-author Tasks. 28 tasks (TASK-ORCHESTRATION-001..028) across the roadmap's three-week build order; every one of the 27 TEST-ORCHESTRATION-NNN Test IDs appears in at least one task's Traces to field, no exceptions. TASK-ORCHESTRATION-021 is a contract-hardening task (author missing business-data-table Persistence Constraints in trd.md) per this stage's TRD-contract-gate rule, since trd.md's own Open Questions left that schema unauthored; TASK-ORCHESTRATION-022 (schema implementation) depends on it. Two spikes (TASK-ORCHESTRATION-001, -005) validate ag-ui-langgraph+Gemini and deepagents checkpoint-sharing before the real implementation tasks that depend on them. Short hash: ZRW4gwpRUQ."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Split the 28 tasks across a two-engineer team (Engineer A, Engineer B) instead of the originally-assumed solo build, per PTL request. Split by feature vertical, not by architectural layer, so each engineer gets one hard LLM/graph component plus a share of simpler infra/UI work: Engineer A owns Planner + deepagents Calculation Agent + chat delivery + business-data chain (11 tasks, 34 pts); Engineer B owns Query Tool + Synthesizer + StateGraph wiring + checkpointing/approval + review surface (11 tasks, 33 pts); both engineers do the 6 milestone/integration-check tasks jointly (15 pts). No task content, dependency, or Test ID coverage changed \u2014 only Assigned to fields plus new Team Assignment and rewritten Parallel Work Plan sections. Re-approved after this edit."
         }
       ]
     },

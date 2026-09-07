@@ -32,7 +32,7 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Split from combined 00+10 stage during Daksh 0.4.7→0.6.1 upgrade — no prior content existed for either half."
+          "reason": "Split from combined 00+10 stage during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed for either half."
         }
       ]
     },
@@ -47,17 +47,28 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Split from combined 00+10 stage during Daksh 0.4.7→0.6.1 upgrade — no prior content existed for either half."
+          "reason": "Split from combined 00+10 stage during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed for either half."
         }
       ]
     },
     "20": {
-      "status": "needs_approval",
+      "status": "approved",
       "doc_type": "business-requirements",
       "output": "docs/business-requirements.md",
       "locked_by": null,
-      "doc_hash": "c36791338c229ec2ee8c01ceff091b99fcdabe642bf9fa9d7c36e94a09b4f380",
-      "approvals": [],
+      "doc_hash": {
+        "docs/business-requirements.md": "3105c4b75d68d0c4a707a7eb2c659adfb52574a327e56d6f9b8a169ae65e5e7e"
+      },
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/business-requirements.md": "3105c4b75d68d0c4a707a7eb2c659adfb52574a327e56d6f9b8a169ae65e5e7e"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",
@@ -89,7 +100,7 @@
         },
         {
           "date": "2026-09-07",
-          "reason": "Daksh 0.4.7→0.6.1 upgrade added a daksh.type frontmatter block to the top of the file (structural only, no content change). doc_hash recomputed accordingly. Short hash: 7WfzAiYvWL."
+          "reason": "Daksh 0.4.7\u21920.6.1 upgrade added a daksh.type frontmatter block to the top of the file (structural only, no content change). doc_hash recomputed accordingly. Short hash: 7WfzAiYvWL."
         },
         {
           "date": "2026-09-07",
@@ -108,7 +119,7 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "New stage added in Daksh 0.6 (project architecture, ahead of Roadmap) — did not exist in 0.4.7."
+          "reason": "New stage added in Daksh 0.6 (project architecture, ahead of Roadmap) \u2014 did not exist in 0.4.7."
         }
       ]
     },
@@ -122,7 +133,7 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Renamed from stage 30 during Daksh 0.4.7→0.6.1 upgrade — no prior content existed."
+          "reason": "Renamed from stage 30 during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed."
         }
       ]
     },
@@ -141,7 +152,7 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Renamed from stage 60 during Daksh 0.4.7→0.6.1 upgrade — no prior content existed. daksh.type frontmatter added to all 4 handbook files (structural only)."
+          "reason": "Renamed from stage 60 during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed. daksh.type frontmatter added to all 4 handbook files (structural only)."
         }
       ]
     }
@@ -166,7 +177,7 @@
       "stage": "90",
       "skipped_on": "2026-09-07",
       "dismissed": false,
-      "reason": "Expected at this point in the pipeline — implementation hasn't started yet."
+      "reason": "Expected at this point in the pipeline \u2014 implementation hasn't started yet."
     }
   ],
   "risk_register": [
@@ -184,6 +195,15 @@
       "stage": "20",
       "reason": "docs/client-context.md exists on disk",
       "detected_at": "2026-09-07T09:29:18.768846+00:00",
+      "status": "open",
+      "acknowledged_by": null,
+      "acknowledged_at": null
+    },
+    {
+      "risk_id": "RISK-003",
+      "stage": "30a",
+      "reason": "Prior stage 20 approved: 0/1",
+      "detected_at": "2026-09-07T11:14:02.634205+00:00",
       "status": "open",
       "acknowledged_by": null,
       "acknowledged_at": null

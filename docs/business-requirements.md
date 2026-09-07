@@ -501,8 +501,7 @@ call on mitigation or acceptance. -->
 
 ## Approval
 
-```
-Approved by:
-Role:
-Date:
-```
+Approved by: Vara
+Role:        PTL
+Date:        2026-09-07
+Hash:        c36791338c22…

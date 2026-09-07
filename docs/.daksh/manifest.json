@@ -18,8 +18,22 @@
       "email": "vara@divami.com"
     }
   ],
-  "modules": [],
-  "module_config": {},
+  "modules": [
+    "ORCHESTRATION"
+  ],
+  "module_config": {
+    "ORCHESTRATION": {
+      "stages_selected": [
+        "30c",
+        "30d",
+        "50a",
+        "50b",
+        "50c",
+        "50d"
+      ],
+      "stages_merged": []
+    }
+  },
   "stages": {
     "00": {
       "status": "not_started",
@@ -176,6 +190,115 @@
         {
           "date": "2026-09-07",
           "note": "Synced with architecture's decision-13 revision (WebSocket \u2192 SSE, verified against published package metadata): risk-03 narrowed to the one real residual gap (langchain not yet a dependency), risk-09 marked retired (never materialized \u2014 decision-13 changed before any WebSocket code was written), decision-16 and steps 01e/02d updated to say SSE. Short hash: AUdxbalBs7."
+        }
+      ]
+    },
+    "30c:ORCHESTRATION": {
+      "status": "approved",
+      "mode": "greenfield",
+      "doc_type": "solution-spec",
+      "output": "docs/implementation/ORCHESTRATION/solution.md",
+      "locked_by": null,
+      "doc_hash": {
+        "docs/implementation/ORCHESTRATION/solution.md": "1ac614ed45a0d5753f52ace1b26e75a03d1539c54c74b453660700d71d85371c"
+      },
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/implementation/ORCHESTRATION/solution.md": "1ac614ed45a0d5753f52ace1b26e75a03d1539c54c74b453660700d71d85371c"
+          }
+        }
+      ],
+      "revision_history": [
+        {
+          "date": "2026-09-07",
+          "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "First-author Solution doc. Reuses BRD flows (flow-01/02/03), users, and goal-01/goal-03 by cross-doc ID; adds flow-04 (unsupported-question decline, not covered by any BRD use case), 8 solution-level requirements, 3 new integration points (business DB, LLM provider, reused checkpoint DB), 4 decisions (decision-19..22), and 6 constraints. Business-state narrative (Request Lifecycle) kept as prose/Mermaid only, not graph nodes \u2014 Event/StateMachine kinds belong to System (30d) per cognition-architecture.md's stage table, not Solution (30c); caught and corrected before finalizing. Short hash: RWJt3byYhA."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "PTL corrected the Request Lifecycle diagram: Human Approval happens right after the Synthesizer, so AwaitingReview is itself the pause-for-approval state. The diagram had wrongly shown the crash/interruption transition coming off BeingAnalyzed ('before Human Approval'); BRD flow-03's own trigger text says interruption happens 'after pausing for approval', so it now transitions from AwaitingReview instead. Rewrote the accompanying prose bullet to match. Short hash: 4qEmu5KjIp."
+        }
+      ]
+    },
+    "30d:ORCHESTRATION": {
+      "status": "not_started",
+      "mode": "greenfield",
+      "doc_type": "system-spec",
+      "output": "docs/implementation/ORCHESTRATION/system.md",
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": [
+        {
+          "date": "2026-09-07",
+          "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        }
+      ]
+    },
+    "50a:ORCHESTRATION": {
+      "status": "not_started",
+      "mode": "greenfield",
+      "doc_type": "trd",
+      "output": "docs/implementation/ORCHESTRATION/trd.md",
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": [
+        {
+          "date": "2026-09-07",
+          "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        }
+      ]
+    },
+    "50b:ORCHESTRATION": {
+      "status": "not_started",
+      "mode": "greenfield",
+      "doc_type": "test-specification",
+      "output": "docs/implementation/ORCHESTRATION/test-specification.md",
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": [
+        {
+          "date": "2026-09-07",
+          "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        }
+      ]
+    },
+    "50c:ORCHESTRATION": {
+      "status": "not_started",
+      "mode": "greenfield",
+      "doc_type": "tasks",
+      "output": "docs/implementation/ORCHESTRATION/tasks.md",
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": [
+        {
+          "date": "2026-09-07",
+          "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        }
+      ]
+    },
+    "50d:ORCHESTRATION": {
+      "status": "not_started",
+      "mode": "greenfield",
+      "doc_type": "implementation-log",
+      "output": "docs/implementation/ORCHESTRATION/impl-log.md",
+      "locked_by": null,
+      "doc_hash": null,
+      "approvals": [],
+      "revision_history": [
+        {
+          "date": "2026-09-07",
+          "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
         }
       ]
     },

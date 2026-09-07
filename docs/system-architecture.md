@@ -315,12 +315,7 @@ No open questions remain at the architecture level.
 
 ## Approval
 
-```
-Approved by:
-Role:
-Date:
-
-Approved by:
-Role:
-Date:
-```
+Approved by: Vara
+Role:        PTL
+Date:        2026-09-07
+Hash:        c3deb109e3f3…

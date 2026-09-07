@@ -158,15 +158,24 @@
       ]
     },
     "30a": {
-      "status": "pending_approval",
+      "status": "approved",
       "mode": "greenfield",
       "doc_type": "architecture",
       "output": "docs/system-architecture.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/system-architecture.md": "c3deb109e3f3cc8a0ada848a27518228e55e8986bead26adc99ec43d21f589f4"
+        "docs/system-architecture.md": "037a05ea9affed7e905239103d8b76f5ca6d115cd67aa9d5866afc0fbc635dcd"
       },
-      "approvals": [],
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/system-architecture.md": "037a05ea9affed7e905239103d8b76f5ca6d115cd67aa9d5866afc0fbc635dcd"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",

@@ -306,15 +306,24 @@
       ]
     },
     "50a:ORCHESTRATION": {
-      "status": "pending_approval",
+      "status": "approved",
       "mode": "greenfield",
       "doc_type": "trd",
       "output": "docs/implementation/ORCHESTRATION/trd.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/implementation/ORCHESTRATION/trd.md": "1d3bbda5d83517d4a585f8ce11ac615454bc2ecd069213a44c5fb92dbb137507"
+        "docs/implementation/ORCHESTRATION/trd.md": "80f170eec0021f74eb3f477412fdfc51e9dba49402c86674c72c1b412e433f3e"
       },
-      "approvals": [],
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/implementation/ORCHESTRATION/trd.md": "80f170eec0021f74eb3f477412fdfc51e9dba49402c86674c72c1b412e433f3e"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",

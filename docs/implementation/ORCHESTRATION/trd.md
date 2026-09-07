@@ -655,12 +655,7 @@ POC assumes). Audit trail: the
 
 ## Approval
 
-```
-Approved by:
-Role:
-Date:
-
-Approved by:
-Role:
-Date:
-```
+Approved by: Vara
+Role:        PTL
+Date:        2026-09-07
+Hash:        1d3bbda5d835…

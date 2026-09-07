@@ -10,49 +10,82 @@ daksh:
 
 This breaks down the approved [`trd.md`](trd.md) and
 [`test-specification.md`](test-specification.md) (both approved
-2026-09-07) into a Jira-ready task list for a single engineer (Vara, PTL)
-across the roadmap's three-week build order (`docs/implementation-roadmap.md`
-decision-14). No sprint velocity or points-per-sprint mapping is used —
-there is one person, so "parallel" below means *logically independent*,
-not *simultaneously staffed*. Every `TEST-ORCHESTRATION-NNN` (27) appears
-in at least one task's `Traces to` field; no exceptions, per this stage's
-own rule. The audience is whoever picks up a ticket cold — currently,
-still Vara.
+2026-09-07) into a Jira-ready task list, now split across a two-engineer
+team (Engineer A, Engineer B; Vara remains PTL) across the roadmap's
+three-week build order (`docs/implementation-roadmap.md` decision-14).
+See [Team Assignment](#team-assignment) for the split rationale. Every
+`TEST-ORCHESTRATION-NNN` (27) appears in at least one task's `Traces to`
+field; no exceptions, per this stage's own rule. The audience is
+whoever picks up a ticket cold.
 
 ## Task Summary
 
-| ID | Summary | Points | Week | Depends on |
-|---|---|---|---|---|
-| TASK-ORCHESTRATION-001 | Spike: validate ag-ui-langgraph + Gemini | 3 | 1 | none |
-| TASK-ORCHESTRATION-002 | Add new dependencies to pyproject.toml | 1 | 1 | none |
-| TASK-ORCHESTRATION-003 | Implement Planner node | 3 | 1 | TASK-002 |
-| TASK-ORCHESTRATION-004 | Implement Query Execution Tool node | 2 | 1 | TASK-002 |
-| TASK-ORCHESTRATION-005 | Spike: validate deepagents subgraph + checkpoint sharing | 3 | 1 | TASK-002 |
-| TASK-ORCHESTRATION-006 | Implement Calculation Agent (deepagents) | 5 | 1 | TASK-005 |
-| TASK-ORCHESTRATION-007 | Implement Synthesizer node | 3 | 1 | TASK-002 |
-| TASK-ORCHESTRATION-008 | Wire the StateGraph (Orchestrator) | 5 | 1 | TASK-003, TASK-004, TASK-006, TASK-007 |
-| TASK-ORCHESTRATION-009 | Implement Chat Route (/chat) | 5 | 1 | TASK-001, TASK-008 |
-| TASK-ORCHESTRATION-010 | Update ChatForm to use @ag-ui/client | 3 | 1 | TASK-009 |
-| TASK-ORCHESTRATION-011 | `requests` table migration | 2 | 1 | none |
-| TASK-ORCHESTRATION-012 | Milestone-01 integration check | 3 | 1 | TASK-009, TASK-010, TASK-011 |
-| TASK-ORCHESTRATION-013 | Wire PostgresSaver checkpointing | 3 | 2 | TASK-008, TASK-011 |
-| TASK-ORCHESTRATION-014 | Implement Human Approval gate | 5 | 2 | TASK-013 |
-| TASK-ORCHESTRATION-018 | Bounded external-call timeout wrapper | 2 | 2 | TASK-004, TASK-006 |
-| TASK-ORCHESTRATION-019 | Idempotent resume verification | 3 | 2 | TASK-014 |
-| TASK-ORCHESTRATION-015 | Implement Review Route (/review) | 5 | 2 | TASK-009, TASK-014 |
-| TASK-ORCHESTRATION-016 | Reviewer pending-list index + query | 2 | 2 | TASK-011 |
-| TASK-ORCHESTRATION-017 | `already_decided` error handling | 2 | 2 | TASK-015 |
-| TASK-ORCHESTRATION-020 | Milestone-02 integration check | 3 | 2 | TASK-015, TASK-016, TASK-017, TASK-018, TASK-019 |
-| TASK-ORCHESTRATION-021 | Contract-hardening: business data schema in TRD | 3 | 3-4 | none |
-| TASK-ORCHESTRATION-022 | Implement business database schema + seed data | 3 | 3-4 | TASK-021 |
-| TASK-ORCHESTRATION-023 | Write predefined queries (constraint-02) | 3 | 3-4 | TASK-022 |
-| TASK-ORCHESTRATION-024 | Swap real Postgres/Gemini credentials | 1 | 3-4 | TASK-013 |
-| TASK-ORCHESTRATION-025 | Full happy-path demo + trace verification | 3 | 3-4 | TASK-012, TASK-023, TASK-024 |
-| TASK-ORCHESTRATION-026 | Reject/Decline/Resume E2E verification | 3 | 3-4 | TASK-020, TASK-023 |
-| TASK-ORCHESTRATION-027 | Demo-day latency observation | 1 | 3-4 | TASK-025 |
-| TASK-ORCHESTRATION-028 | Milestone-03 final integration check | 2 | 3-4 | TASK-025, TASK-026 |
+| ID | Summary | Points | Week | Owner | Depends on |
+|---|---|---|---|---|---|
+| TASK-ORCHESTRATION-001 | Spike: validate ag-ui-langgraph + Gemini | 3 | 1 | Engineer A | none |
+| TASK-ORCHESTRATION-002 | Add new dependencies to pyproject.toml | 1 | 1 | Engineer A | none |
+| TASK-ORCHESTRATION-003 | Implement Planner node | 3 | 1 | Engineer A | TASK-002 |
+| TASK-ORCHESTRATION-004 | Implement Query Execution Tool node | 2 | 1 | Engineer B | TASK-002 |
+| TASK-ORCHESTRATION-005 | Spike: validate deepagents subgraph + checkpoint sharing | 3 | 1 | Engineer A | TASK-002 |
+| TASK-ORCHESTRATION-006 | Implement Calculation Agent (deepagents) | 5 | 1 | Engineer A | TASK-005 |
+| TASK-ORCHESTRATION-007 | Implement Synthesizer node | 3 | 1 | Engineer B | TASK-002 |
+| TASK-ORCHESTRATION-008 | Wire the StateGraph (Orchestrator) | 5 | 1 | Engineer B | TASK-003, TASK-004, TASK-006, TASK-007 |
+| TASK-ORCHESTRATION-009 | Implement Chat Route (/chat) | 5 | 1 | Engineer A | TASK-001, TASK-008 |
+| TASK-ORCHESTRATION-010 | Update ChatForm to use @ag-ui/client | 3 | 1 | Engineer A | TASK-009 |
+| TASK-ORCHESTRATION-011 | `requests` table migration | 2 | 1 | Engineer A | none |
+| TASK-ORCHESTRATION-012 | Milestone-01 integration check | 3 | 1 | Engineer A & Engineer B | TASK-009, TASK-010, TASK-011 |
+| TASK-ORCHESTRATION-013 | Wire PostgresSaver checkpointing | 3 | 2 | Engineer B | TASK-008, TASK-011 |
+| TASK-ORCHESTRATION-014 | Implement Human Approval gate | 5 | 2 | Engineer B | TASK-013 |
+| TASK-ORCHESTRATION-018 | Bounded external-call timeout wrapper | 2 | 2 | Engineer B | TASK-004, TASK-006 |
+| TASK-ORCHESTRATION-019 | Idempotent resume verification | 3 | 2 | Engineer B | TASK-014 |
+| TASK-ORCHESTRATION-015 | Implement Review Route (/review) | 5 | 2 | Engineer B | TASK-009, TASK-014 |
+| TASK-ORCHESTRATION-016 | Reviewer pending-list index + query | 2 | 2 | Engineer B | TASK-011 |
+| TASK-ORCHESTRATION-017 | `already_decided` error handling | 2 | 2 | Engineer B | TASK-015 |
+| TASK-ORCHESTRATION-020 | Milestone-02 integration check | 3 | 2 | Engineer A & Engineer B | TASK-015, TASK-016, TASK-017, TASK-018, TASK-019 |
+| TASK-ORCHESTRATION-021 | Contract-hardening: business data schema in TRD | 3 | 3-4 | Engineer A | none |
+| TASK-ORCHESTRATION-022 | Implement business database schema + seed data | 3 | 3-4 | Engineer A | TASK-021 |
+| TASK-ORCHESTRATION-023 | Write predefined queries (constraint-02) | 3 | 3-4 | Engineer A | TASK-022 |
+| TASK-ORCHESTRATION-024 | Swap real Postgres/Gemini credentials | 1 | 3-4 | Engineer B | TASK-013 |
+| TASK-ORCHESTRATION-025 | Full happy-path demo + trace verification | 3 | 3-4 | Engineer A & Engineer B | TASK-012, TASK-023, TASK-024 |
+| TASK-ORCHESTRATION-026 | Reject/Decline/Resume E2E verification | 3 | 3-4 | Engineer A & Engineer B | TASK-020, TASK-023 |
+| TASK-ORCHESTRATION-027 | Demo-day latency observation | 1 | 3-4 | Engineer A & Engineer B | TASK-025 |
+| TASK-ORCHESTRATION-028 | Milestone-03 final integration check | 2 | 3-4 | Engineer A & Engineer B | TASK-025, TASK-026 |
 
 No task exceeds 8 points; nothing needed splitting.
+
+## Team Assignment
+
+Split by vertical, not by layer — each engineer gets one hard,
+interesting LLM/graph component plus a share of simpler infra/UI work,
+rather than one person getting all the agent-design work and the other
+getting only migrations and UI wiring.
+
+- **Engineer A — Planner, Calculation & Chat Delivery** (11 tasks, 34 pts):
+  `TASK-ORCHESTRATION-001`, `-002`, `-003`, `-005`, `-006`, `-009`, `-010`,
+  `-011`, `-021`, `-022`, `-023`. Owns the Planner node, the deepagents
+  Calculation Agent (the most involved single component in the module),
+  the `/chat` route and its frontend wiring, the `requests` table, and
+  the business-data chain (contract-hardening through predefined
+  queries).
+- **Engineer B — Query, Synthesis, Graph Wiring & Approval** (11 tasks,
+  33 pts): `TASK-ORCHESTRATION-004`, `-007`, `-008`, `-013`, `-014`,
+  `-015`, `-016`, `-017`, `-018`, `-019`, `-024`. Owns the Query
+  Execution Tool, the Synthesizer, the StateGraph wiring itself, all of
+  checkpointing/approval (the module's other genuinely hard piece — the
+  interrupt/resume state machine), and the `/review` surface.
+- **Joint — milestone and integration checks** (6 tasks, 15 pts,
+  alternating driver): `TASK-ORCHESTRATION-012`, `-020`, `-025`, `-026`,
+  `-027`, `-028`. These verify the whole assembled system, not one
+  person's slice, so both engineers participate regardless of who owned
+  the underlying component work.
+
+The only hard cross-track coupling is where the two chains physically
+meet: `TASK-ORCHESTRATION-008` (Engineer B) needs Engineer A's Planner
+(`-003`) and Calculation Agent (`-006`) first; `TASK-ORCHESTRATION-009`
+(Engineer A) needs Engineer B's StateGraph (`-008`); `TASK-ORCHESTRATION-013`
+(Engineer B) needs Engineer A's `requests` table (`-011`). That coupling
+exists no matter how the tasks are divided — it is the shape of the
+system, not an artifact of this split.
 
 ## Dependency Graph
 
@@ -216,7 +249,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** [decision-25](trd.md#technology-choices), [decision-28](trd.md#technology-choices), TEST-ORCHESTRATION-011
 - **Depends on:** none
 - **Description:** Build a throwaway script that compiles a one-node LangGraph graph, wraps it with `ag-ui-langgraph`'s `add_langgraph_fastapi_endpoint`, and streams at least one real `ag-ui-protocol` event over SSE using Gemini via `langchain-google-genai`. This is time-boxed research, not production code — delete it once the real `TASK-ORCHESTRATION-009` starts.
@@ -238,7 +271,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 1
 - **Assignee:** Junior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** [trd.md §Technology Choices](trd.md#technology-choices)
 - **Depends on:** none
 - **Description:** Add `langchain`, `langchain-google-genai`, `ag-ui-langgraph`, and `deepagents` to `backend/pyproject.toml` at the versions verified in the TRD (or newer within the stated constraints). Run `uv sync`.
@@ -260,7 +293,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** SY-ORCHESTRATION-001, SY-ORCHESTRATION-004, [trd.md §Architecture Overview](trd.md#architecture-overview), TEST-ORCHESTRATION-001, TEST-ORCHESTRATION-002, TEST-ORCHESTRATION-005, TEST-ORCHESTRATION-023
 - **Depends on:** TASK-ORCHESTRATION-002
 - **Description:** Implement `backend/app/graph/nodes/planner.py` — a LangGraph node using `langchain-google-genai`'s structured output to produce either a `Plan` or a `Decline`, never both (`invariant-decline-no-plan`). The Planner only plans; it never executes a tool (BRD decision-01).
@@ -283,7 +316,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 2
 - **Assignee:** Mid
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** SY-ORCHESTRATION-001, TEST-ORCHESTRATION-008
 - **Depends on:** TASK-ORCHESTRATION-002
 - **Description:** Implement `backend/app/graph/nodes/query_tool.py` — deterministic, no LLM. Runs one of the predefined queries against `iface-business-db` and returns raw rows. Read-only by construction (`constraint-01`) — use fixture data until `TASK-ORCHESTRATION-022`/`023` exist.
@@ -305,7 +338,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** decision-29, TEST-ORCHESTRATION-014
 - **Depends on:** TASK-ORCHESTRATION-002
 - **Description:** Confirm, with a throwaway script, that a `deepagents.create_deep_agent()` graph compiled with **no checkpointer of its own** and registered directly as a node in a parent `StateGraph` (not wrapped in a manual `.invoke()` call) actually shares the parent's `PostgresSaver` and produces distinct checkpoint entries per internal tool call.
@@ -327,7 +360,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 5
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** [trd.md §Technology Choices](trd.md#technology-choices), TEST-ORCHESTRATION-004, TEST-ORCHESTRATION-014
 - **Depends on:** TASK-ORCHESTRATION-005
 - **Description:** Implement `backend/app/graph/nodes/calc_agent.py` using `deepagents.create_deep_agent()` with real tool functions (`sum`/`average`/`percentage_change`, etc. per BRD's aggregation list), registered directly as the node per `TASK-ORCHESTRATION-005`'s confirmed pattern.
@@ -349,7 +382,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** SY-ORCHESTRATION-006, TEST-ORCHESTRATION-006
 - **Depends on:** TASK-ORCHESTRATION-002
 - **Description:** Implement `backend/app/graph/nodes/synthesizer.py`. Always runs (BRD decision-03); combines question, rows, and calculations into one response; never leaks schema/table names (`requirement-08`).
@@ -371,7 +404,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 5
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** FR-005, FR-008, FR-009, [trd.md §State Machines](trd.md#state-machines), TEST-ORCHESTRATION-007
 - **Depends on:** TASK-ORCHESTRATION-003, TASK-ORCHESTRATION-004, TASK-ORCHESTRATION-006, TASK-ORCHESTRATION-007
 - **Description:** Implement `backend/app/graph/graph.py` — the `StateGraph` connecting Planner, Query Tool, Calculation Agent, and Synthesizer with dependency-ordered conditional routing. This is graph structure, not a node — see TRD's node-vs-structure distinction.
@@ -393,7 +426,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 5
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** TRD-ORCHESTRATION-003, [trd.md §API Contracts](trd.md#api-contracts) (`iface-chat-api` v1.0.0), TEST-ORCHESTRATION-011
 - **Depends on:** TASK-ORCHESTRATION-001, TASK-ORCHESTRATION-008
 - **Description:** Implement `backend/app/api/routes/chat.py` using the spike's confirmed `add_langgraph_fastapi_endpoint` pattern, wired to the real compiled graph from `TASK-ORCHESTRATION-008`.
@@ -415,7 +448,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 3
 - **Assignee:** Mid
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** [trd.md §Technology Choices](trd.md#technology-choices), TEST-ORCHESTRATION-027
 - **Depends on:** TASK-ORCHESTRATION-009
 - **Description:** Replace `frontend/src/api/chatApi.ts`'s plain `fetch` call with `@ag-ui/client`'s `HttpAgent`, and update `ChatForm.tsx` to render streamed events as they arrive instead of waiting for one final reply.
@@ -437,7 +470,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 2
 - **Assignee:** Mid
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** TRD-ORCHESTRATION-004, [trd.md §Data Model](trd.md#data-model), [trd.md §Persistence Constraints](trd.md#persistence-constraints), TEST-ORCHESTRATION-003
 - **Depends on:** none
 - **Description:** Write and run the migration for `request_state`, `decline_reason` enums, the `requests` table, and the `decline_reason_only_when_declined` CHECK constraint — DDL is already fully specified in the TRD, no new design here.
@@ -459,7 +492,7 @@ edges:
 - **Sprint:** Week 1
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A & Engineer B
 - **Traces to:** [implementation-roadmap.md §Milestones](../../implementation-roadmap.md#milestones) (milestone-01), TEST-ORCHESTRATION-001, TEST-ORCHESTRATION-002, TEST-ORCHESTRATION-004, TEST-ORCHESTRATION-005, TEST-ORCHESTRATION-006, TEST-ORCHESTRATION-007, TEST-ORCHESTRATION-008, TEST-ORCHESTRATION-011, TEST-ORCHESTRATION-014, TEST-ORCHESTRATION-017
 - **Depends on:** TASK-ORCHESTRATION-009, TASK-ORCHESTRATION-010, TASK-ORCHESTRATION-011
 - **Description:** Run every Week-1-owned Test ID against the fully assembled core loop; confirm milestone-01's `definition_of_done` live, not just per-component.
@@ -480,7 +513,7 @@ edges:
 - **Sprint:** Week 2
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** TRD-ORCHESTRATION-001, decision-23, TEST-ORCHESTRATION-009
 - **Depends on:** TASK-ORCHESTRATION-008, TASK-ORCHESTRATION-011
 - **Description:** Compile the parent graph with a real `PostgresSaver` (dummy credentials from `backend/.env` until `TASK-ORCHESTRATION-024`). `comp-calc-agent`'s internal `deepagents` subgraph must **not** get its own checkpointer — confirmed pattern from `TASK-ORCHESTRATION-005`.
@@ -501,7 +534,7 @@ edges:
 - **Sprint:** Week 2
 - **Points:** 5
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** SY-ORCHESTRATION-002, SY-ORCHESTRATION-003, [trd.md §State Machines](trd.md#state-machines) (`AwaitingReview` transitions)
 - **Depends on:** TASK-ORCHESTRATION-013
 - **Description:** Implement the pause after the Synthesizer completes — write the load-bearing checkpoint (`constraint-checkpoint-freshness`) before the request is marked `AwaitingReview`, then wait for an external resume signal (Approve/Reject).
@@ -523,7 +556,7 @@ edges:
 - **Sprint:** Week 2
 - **Points:** 5
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** [trd.md §API Contracts](trd.md#api-contracts) (`iface-review-api` v1.0.0), TEST-ORCHESTRATION-012, TEST-ORCHESTRATION-013
 - **Depends on:** TASK-ORCHESTRATION-009, TASK-ORCHESTRATION-014
 - **Description:** Implement `backend/app/api/routes/review.py` — `GET` pending list and `POST /review/{thread_id}/decision`, same SSE-capable pattern as `/chat`, never sharing a connection (architecture decision-12).
@@ -545,7 +578,7 @@ edges:
 - **Sprint:** Week 2
 - **Points:** 2
 - **Assignee:** Mid
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** TRD-ORCHESTRATION-005, [trd.md §Persistence Constraints](trd.md#persistence-constraints), TEST-ORCHESTRATION-012
 - **Depends on:** TASK-ORCHESTRATION-011
 - **Description:** Add `idx_requests_awaiting_review` (already specified in the TRD's DDL) if not already applied in `TASK-ORCHESTRATION-011`, and write the query it serves.
@@ -566,7 +599,7 @@ edges:
 - **Sprint:** Week 2
 - **Points:** 2
 - **Assignee:** Mid
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** TRD-ORCHESTRATION-006, TRD-ORCHESTRATION-010, [trd.md §API Contracts](trd.md#api-contracts), TEST-ORCHESTRATION-013, TEST-ORCHESTRATION-016
 - **Depends on:** TASK-ORCHESTRATION-015
 - **Description:** A second `POST /review/{thread_id}/decision` on an already-resumed thread must return the shared `already_decided` error, matching the JSON Schema every endpoint uses.
@@ -587,7 +620,7 @@ edges:
 - **Sprint:** Week 2
 - **Points:** 2
 - **Assignee:** Mid
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** SY-ORCHESTRATION-012, TRD-ORCHESTRATION-002, TEST-ORCHESTRATION-010
 - **Depends on:** TASK-ORCHESTRATION-004, TASK-ORCHESTRATION-006
 - **Description:** Wrap `iface-business-db` and `iface-llm-provider` calls with a 30-second bound (decision-24); a timeout raises `event-integration-failure`, failing only that request.
@@ -609,7 +642,7 @@ edges:
 - **Sprint:** Week 2
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** SY-ORCHESTRATION-010, SY-ORCHESTRATION-011, TRD-ORCHESTRATION-009, TEST-ORCHESTRATION-019, TEST-ORCHESTRATION-024, TEST-ORCHESTRATION-025
 - **Depends on:** TASK-ORCHESTRATION-014
 - **Description:** Confirm resuming after an interruption never re-invokes a `Task` already `COMPLETED`, and the resumed response still traces back to the exact original question text.
@@ -631,7 +664,7 @@ edges:
 - **Sprint:** Week 2
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A & Engineer B
 - **Traces to:** [implementation-roadmap.md §Milestones](../../implementation-roadmap.md#milestones) (milestone-02), TEST-ORCHESTRATION-003, TEST-ORCHESTRATION-009, TEST-ORCHESTRATION-010, TEST-ORCHESTRATION-012, TEST-ORCHESTRATION-013, TEST-ORCHESTRATION-016, TEST-ORCHESTRATION-018, TEST-ORCHESTRATION-019, TEST-ORCHESTRATION-020, TEST-ORCHESTRATION-021, TEST-ORCHESTRATION-022, TEST-ORCHESTRATION-024, TEST-ORCHESTRATION-025
 - **Depends on:** TASK-ORCHESTRATION-015, TASK-ORCHESTRATION-016, TASK-ORCHESTRATION-017, TASK-ORCHESTRATION-018, TASK-ORCHESTRATION-019
 - **Description:** Run every Week-2-owned Test ID, including the concurrent-isolation check (`TEST-ORCHESTRATION-021`), before calling milestone-02 done.
@@ -652,7 +685,7 @@ edges:
 - **Sprint:** Weeks 3-4
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** [trd.md §Open Questions](trd.md#open-questions) ("Business data table schema")
 - **Depends on:** none
 - **Description:** `trd.md` explicitly left the business-table DDL (sales/order/customer/product) unauthored. Per this stage's TRD-contract-gate rule, no implementation task may create or mutate those tables until `trd.md §Persistence Constraints` names their primary keys, uniqueness constraints, indexes (matching the predefined queries), and retention policy — same rigor already applied to the `requests` table. **This is a TRD edit, not application code.**
@@ -674,7 +707,7 @@ edges:
 - **Sprint:** Weeks 3-4
 - **Points:** 3
 - **Assignee:** Mid
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** [trd.md §Persistence Constraints](trd.md#persistence-constraints), TEST-ORCHESTRATION-015
 - **Depends on:** TASK-ORCHESTRATION-021
 - **Description:** Create the business tables per the now-hardened TRD section, in the same `synergy` Postgres instance as `requests`/checkpoints (decision-30), with no table-name collision. Seed with real data (vision.md decision-09 — not synthetic).
@@ -696,7 +729,7 @@ edges:
 - **Sprint:** Weeks 3-4
 - **Points:** 3
 - **Assignee:** Mid
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A
 - **Traces to:** [business-requirements.md §Scope](../../business-requirements.md#scope) (constraint-02), TEST-ORCHESTRATION-008
 - **Depends on:** TASK-ORCHESTRATION-022
 - **Description:** Write the 3-4 fixed SQL queries the Query Execution Tool dispatches — no generated SQL, ever (BRD decision-02).
@@ -717,7 +750,7 @@ edges:
 - **Sprint:** Weeks 3-4
 - **Points:** 1
 - **Assignee:** Junior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer B
 - **Traces to:** [system-architecture.md §Decisions](../../system-architecture.md#decisions) (decision-10), [implementation-roadmap.md §Build Order and Risk Retirement](../../implementation-roadmap.md#build-order-and-risk-retirement) (decision-17)
 - **Depends on:** TASK-ORCHESTRATION-013
 - **Description:** Replace `backend/.env`'s dummy Postgres values and confirm `GOOGLE_API_KEY` is real — config only, no code change.
@@ -738,7 +771,7 @@ edges:
 - **Sprint:** Weeks 3-4
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A & Engineer B
 - **Traces to:** [trd.md §NFR Design](trd.md#nfr-design), TEST-ORCHESTRATION-017
 - **Depends on:** TASK-ORCHESTRATION-012, TASK-ORCHESTRATION-023, TASK-ORCHESTRATION-024
 - **Description:** Live run against real data and real credentials end to end; confirm the observability trace (checkpoint history + `requests.updated_at`) is complete for the whole run.
@@ -760,7 +793,7 @@ edges:
 - **Sprint:** Weeks 3-4
 - **Points:** 3
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A & Engineer B
 - **Traces to:** [solution.md §Business Flow Inventory](solution.md#business-flow-inventory), TEST-ORCHESTRATION-018, TEST-ORCHESTRATION-020, TEST-ORCHESTRATION-021, TEST-ORCHESTRATION-022
 - **Depends on:** TASK-ORCHESTRATION-020, TASK-ORCHESTRATION-023
 - **Description:** Live runs of the three non-happy-path flows (Reject, Decline, concurrent isolation) against real data.
@@ -781,7 +814,7 @@ edges:
 - **Sprint:** Weeks 3-4
 - **Points:** 1
 - **Assignee:** Junior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A & Engineer B
 - **Traces to:** [trd.md §NFR Design](trd.md#nfr-design), TEST-ORCHESTRATION-026
 - **Depends on:** TASK-ORCHESTRATION-025
 - **Description:** One timed run of the happy path, recorded — `constraint-perf` sets no numeric target, so this is observation, not a pass/fail gate.
@@ -801,7 +834,7 @@ edges:
 - **Sprint:** Weeks 3-4
 - **Points:** 2
 - **Assignee:** Senior
-- **Assigned to:** Vara
+- **Assigned to:** Engineer A & Engineer B
 - **Traces to:** [implementation-roadmap.md §Milestones](../../implementation-roadmap.md#milestones) (milestone-03), TEST-ORCHESTRATION-016
 - **Depends on:** TASK-ORCHESTRATION-025, TASK-ORCHESTRATION-026
 - **Description:** Confirm every one of the 27 Test IDs has run at least once, including `TEST-ORCHESTRATION-016` (shared error schema across all three endpoints) if not already exercised incidentally.
@@ -817,28 +850,34 @@ edges:
 
 ## Parallel Work Plan
 
-With one engineer, "parallel" means *order-independent*, not
-*simultaneously staffed*:
+Reflects the real two-engineer team in [Team Assignment](#team-assignment)
+(supersedes roadmap decision-14's solo-engineer assumption — the team
+size changed after that decision was made, not the technical plan).
 
-- **Week 1:** `TASK-ORCHESTRATION-011` (requests migration) has no
-  dependency and can be done whenever convenient — before, during, or
-  after the spikes. `TASK-ORCHESTRATION-001` and `TASK-ORCHESTRATION-005`
-  (the two spikes) are independent of each other. Once
-  `TASK-ORCHESTRATION-002` lands, `TASK-ORCHESTRATION-003`,
-  `-004`, and `-007` have no dependency on one another.
-- **Week 2:** `TASK-ORCHESTRATION-016` (index) only needs
-  `TASK-ORCHESTRATION-011`, not `TASK-ORCHESTRATION-013`/`014` — it can be
-  done early in the week.
-- **Weeks 3-4:** `TASK-ORCHESTRATION-024` (credential swap) only needs
-  `TASK-ORCHESTRATION-013`, not the business-data chain
-  (`TASK-ORCHESTRATION-021`→`022`→`023`) — the two chains can run in
-  either order relative to each other.
+- **Week 1:** Engineer A does `TASK-ORCHESTRATION-002` first (1 point) —
+  it unblocks Engineer B's `-004`/`-007` too. After that, Engineer A runs
+  `-001`→(`-003` and `-005`→`-006`) while Engineer B runs `-004` and `-007`
+  independently; `-011` (requests migration, Engineer A) has no
+  dependency at all and can slot in whenever convenient. The two tracks
+  meet at `-008` (Engineer B, needs A's `-003`/`-006`) and then `-009`
+  (Engineer A, needs B's `-008`). `-010` follows once `-009` lands.
+  `-012` is the joint Milestone-01 check once both tracks land.
+- **Week 2:** Engineer B owns the whole checkpointing/approval/review
+  chain (`-013`→`-014`→`-015`/`-016`/`-017`/`-018`/`-019`) with no
+  Engineer-A dependency except the already-delivered `-011`. Engineer A
+  is free during this window to start the business-data chain
+  (`-021`→`-022`→`-023`) early, even though the roadmap places it in
+  Weeks 3-4 — nothing blocks it. `-020` is the joint Milestone-02 check.
+- **Weeks 3-4:** Engineer B does the trivial `-024` (needs only
+  `-013`, already done). Both converge on `-025`, `-026`, `-027`, `-028`
+  — the final demo and integration checks — once Engineer A's `-023`
+  and Engineer B's `-024` are both in.
 
-If a second engineer joins (roadmap decision-14's reversal trigger), the
-natural split is: one person on the business-data chain
-(`TASK-ORCHESTRATION-021`-`023`), the other on the checkpointing/approval
-chain (`TASK-ORCHESTRATION-013`-`020`) — they only converge at
-`TASK-ORCHESTRATION-025`.
+Net effect: Engineer A is rarely blocked (front-loads the business-data
+chain into the Week-2 gap); Engineer B has one short wait at the start
+of Week 1 for `-002`. The only points where one engineer is genuinely
+idle-on-the-other are `-008`→`-009` in Week 1 — budget for a short sync
+there rather than treating it as a silent handoff.
 
 ## Open Questions
 
@@ -858,4 +897,4 @@ chain (`TASK-ORCHESTRATION-013`-`020`) — they only converge at
 Approved by: Vara
 Role:        PTL
 Date:        2026-09-07
-Hash:        957832db910d…
+Hash:        a48f328de8eb…

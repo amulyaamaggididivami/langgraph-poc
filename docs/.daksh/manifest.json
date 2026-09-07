@@ -4,7 +4,6 @@
   "client": "internal",
   "created": "2026-09-07",
   "daksh_version": "0.4.7",
-
   "rules": {
     "approvals_per_gate": 1,
     "open_questions": "optional",
@@ -12,7 +11,6 @@
     "jira_sync": "optional",
     "tend_frequency": "end_of_project"
   },
-
   "team_roster": [
     {
       "name": "Vara",
@@ -20,11 +18,8 @@
       "email": "vara@divami.com"
     }
   ],
-
   "modules": [],
-
   "module_config": {},
-
   "stages": {
     "00+10": {
       "status": "not_started",
@@ -35,12 +30,41 @@
       "revision_history": []
     },
     "20": {
-      "status": "not_started",
+      "status": "pending_approval",
       "output": "docs/business-requirements.md",
       "locked_by": null,
-      "doc_hash": null,
+      "doc_hash": "c7efeddc71d9838a8f76b564d024607b7bde55bd57bad240a27d9e3d1eee6b83",
       "approvals": [],
-      "revision_history": []
+      "revision_history": [
+        {
+          "date": "2026-09-07",
+          "note": "First-author BRD grounded directly in docs/AI_Data_Analysis_Orchestration_POC.md (no upstream vision.md/client-context.md exists yet - preflight WARN 0/1 acknowledged). Short hash: l0kOBTG6C1."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Resolved oq-01: task-status is a closed enum (PENDING, RUNNING, COMPLETED, FAILED) via decision-04. Updated Data Models, Open Questions, AC-005, and domain-glossary.md accordingly. Short hash: UaJRHtEkLA."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "decision-05: Reject/revision-retry cut from POC scope, Approve-only gate. Removed UC-002, marked FR-013/AC-013 out of scope, resolved oq-02 as moot (decision-05 decides it). Updated Scope, Stakeholders, NFR-Reliability, domain-glossary.md. Short hash: aX3pdePOAQ."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Reverted decision-05: Reject stays in scope (restored UC-002/FR-013/AC-013). Corrected resolution of oq-02: Reject withholds the response and halts the workflow for that thread - no retry or replan, not out-of-scope removal. Updated Scope, Stakeholders, Use Cases, NFR-Reliability, domain-glossary.md accordingly. Short hash: hETRGhT9Da."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Resolved oq-03: checkpoint backend is Postgres, keyed by thread_id (decision-06). Noted credentials are an implementation-stage secrets/env concern, not stored in this doc. Short hash: 6permjZBp8."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Resolved oq-04: Reviewer vs Business User differ by surface (/review vs /chat), no login, no gate (decision-07). Raised oq-05 as a direct, honest consequence: concurrent Approve/Reject on the same thread is undefined. Updated Stakeholders, Security NFR, domain-glossary.md. Short hash: RsQbVU86Jt."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Resolved oq-05: first-write-wins (decision-08) - whichever Approve/Reject request resumes the thread first is final; a later request has no paused interrupt left to act on. All 5 open questions now resolved. Short hash: lPUw15wMpt."
+        }
+      ]
     },
     "30": {
       "status": "not_started",
@@ -52,24 +76,45 @@
     },
     "60": {
       "status": "not_started",
-      "output": ["handbook/end-user.md", "handbook/admin.md", "handbook/ops.md", "handbook/developer.md"],
+      "output": [
+        "handbook/end-user.md",
+        "handbook/admin.md",
+        "handbook/ops.md",
+        "handbook/developer.md"
+      ],
       "locked_by": null,
       "doc_hash": null,
       "approvals": [],
       "revision_history": []
     }
   },
-
   "contracts": {},
-
   "traceability": {},
-
   "change_records": {},
-
-  "risk_register": [],
-
-  "required_skills": ["doc-narrator", "vyasa"],
-
+  "risk_register": [
+    {
+      "risk_id": "RISK-001",
+      "stage": "20",
+      "reason": "Prior stage 00+10 approved: 0/1",
+      "detected_at": "2026-09-07T09:29:18.768846+00:00",
+      "status": "open",
+      "acknowledged_by": null,
+      "acknowledged_at": null
+    },
+    {
+      "risk_id": "RISK-002",
+      "stage": "20",
+      "reason": "docs/client-context.md exists on disk",
+      "detected_at": "2026-09-07T09:29:18.768846+00:00",
+      "status": "open",
+      "acknowledged_by": null,
+      "acknowledged_at": null
+    }
+  ],
+  "required_skills": [
+    "doc-narrator",
+    "vyasa"
+  ],
   "jira": {
     "project_key": null,
     "board_id": null,
@@ -77,6 +122,10 @@
     "ticket_map": {},
     "user_map": {},
     "workflow_preset": "divami-engineering-jira-standard",
-    "done_statuses": ["Done", "Done - Not Reproducible", "Done - Not A Bug"]
+    "done_statuses": [
+      "Done",
+      "Done - Not Reproducible",
+      "Done - Not A Bug"
+    ]
   }
 }

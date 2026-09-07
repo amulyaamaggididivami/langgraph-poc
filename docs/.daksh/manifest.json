@@ -46,22 +46,33 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Split from combined 00+10 stage during Daksh 0.4.7→0.6.1 upgrade — no prior content existed for either half."
+          "reason": "Split from combined 00+10 stage during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed for either half."
         }
       ]
     },
     "10": {
-      "status": "pending_approval",
+      "status": "approved",
       "mode": "greenfield",
       "doc_type": "vision",
       "output": "docs/vision.md",
       "locked_by": null,
-      "doc_hash": "28b21fc63fd374d1da27be78028897fcc253e727d7022b24c6106121122ffccf",
-      "approvals": [],
+      "doc_hash": {
+        "docs/vision.md": "d82a29d878d45d2cdda8bcaacf27d0e20ff83a52fc35d8da5669afc0478c8e68"
+      },
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/vision.md": "d82a29d878d45d2cdda8bcaacf27d0e20ff83a52fc35d8da5669afc0478c8e68"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Split from combined 00+10 stage during Daksh 0.4.7→0.6.1 upgrade — no prior content existed for either half."
+          "reason": "Split from combined 00+10 stage during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed for either half."
         },
         {
           "date": "2026-09-07",
@@ -138,7 +149,7 @@
         },
         {
           "date": "2026-09-07",
-          "reason": "Daksh 0.4.7→0.6.1 upgrade added a daksh.type frontmatter block to the top of the file (structural only, no content change). doc_hash recomputed accordingly. Short hash: 7WfzAiYvWL."
+          "reason": "Daksh 0.4.7\u21920.6.1 upgrade added a daksh.type frontmatter block to the top of the file (structural only, no content change). doc_hash recomputed accordingly. Short hash: 7WfzAiYvWL."
         },
         {
           "date": "2026-09-07",
@@ -159,7 +170,7 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "New stage added in Daksh 0.6 (project architecture, ahead of Roadmap) — did not exist in 0.4.7."
+          "reason": "New stage added in Daksh 0.6 (project architecture, ahead of Roadmap) \u2014 did not exist in 0.4.7."
         },
         {
           "date": "2026-09-07",
@@ -171,7 +182,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "PTL deleted the echo-stub scaffold (backend/app/graph/, backend/app/api/routes/chat.py, backend/app/schemas/chat.py) as project-setup boilerplate, not real work — main.py updated to drop the chat router; backend verified to still import cleanly with only the health router. Doc updated throughout to describe the Chat Route, Planner, Orchestration Layer, and Chat HTTP API as planned/not-yet-built rather than stubbed. Noted frontend/src/components/ChatForm.tsx still posts to /chat and will 404 until the route is rebuilt. Short hash: LMUoc1Z3sa."
+          "note": "PTL deleted the echo-stub scaffold (backend/app/graph/, backend/app/api/routes/chat.py, backend/app/schemas/chat.py) as project-setup boilerplate, not real work \u2014 main.py updated to drop the chat router; backend verified to still import cleanly with only the health router. Doc updated throughout to describe the Chat Route, Planner, Orchestration Layer, and Chat HTTP API as planned/not-yet-built rather than stubbed. Noted frontend/src/components/ChatForm.tsx still posts to /chat and will 404 until the route is rebuilt. Short hash: LMUoc1Z3sa."
         },
         {
           "date": "2026-09-07",
@@ -179,7 +190,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "Verified ag-ui-protocol/LangGraph compatibility against published package metadata (PyPI/npm): version-compatible via the correct package (ag-ui-langgraph, needs langgraph>=0.6.0,<2 and langchain-core>=0.3.0, both satisfied; langchain itself still needs adding). But WebSocket is not a built-in transport in the official SDKs — only SSE ships out of the box. Revised decision-13 from WebSocket to SSE; updated all interface/component/Technology Baseline references accordingly. Short hash: kRhQzDk8Qt."
+          "note": "Verified ag-ui-protocol/LangGraph compatibility against published package metadata (PyPI/npm): version-compatible via the correct package (ag-ui-langgraph, needs langgraph>=0.6.0,<2 and langchain-core>=0.3.0, both satisfied; langchain itself still needs adding). But WebSocket is not a built-in transport in the official SDKs \u2014 only SSE ships out of the box. Revised decision-13 from WebSocket to SSE; updated all interface/component/Technology Baseline references accordingly. Short hash: kRhQzDk8Qt."
         }
       ]
     },
@@ -205,15 +216,15 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Renamed from stage 30 during Daksh 0.4.7→0.6.1 upgrade — no prior content existed."
+          "reason": "Renamed from stage 30 during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed."
         },
         {
           "date": "2026-09-07",
-          "note": "First-author Roadmap doc, grounded in the approved BRD and system-architecture.md (still pending_approval, 0/1 — PTL chose to proceed anyway). Single-module sequential build order across 3 weeks/milestones (decision-14 through decision-18), 12 build steps reusing BRD FR IDs, 9 named risks. Module registration deferred per this stage's own rule (register on approval, not on draft) — manifest.modules stays empty until 30b is approved. Short hash: 6LMWwIrdKu."
+          "note": "First-author Roadmap doc, grounded in the approved BRD and system-architecture.md (still pending_approval, 0/1 \u2014 PTL chose to proceed anyway). Single-module sequential build order across 3 weeks/milestones (decision-14 through decision-18), 12 build steps reusing BRD FR IDs, 9 named risks. Module registration deferred per this stage's own rule (register on approval, not on draft) \u2014 manifest.modules stays empty until 30b is approved. Short hash: 6LMWwIrdKu."
         },
         {
           "date": "2026-09-07",
-          "note": "Synced with architecture's decision-13 revision (WebSocket → SSE, verified against published package metadata): risk-03 narrowed to the one real residual gap (langchain not yet a dependency), risk-09 marked retired (never materialized — decision-13 changed before any WebSocket code was written), decision-16 and steps 01e/02d updated to say SSE. Short hash: AUdxbalBs7."
+          "note": "Synced with architecture's decision-13 revision (WebSocket \u2192 SSE, verified against published package metadata): risk-03 narrowed to the one real residual gap (langchain not yet a dependency), risk-09 marked retired (never materialized \u2014 decision-13 changed before any WebSocket code was written), decision-16 and steps 01e/02d updated to say SSE. Short hash: AUdxbalBs7."
         }
       ]
     },
@@ -234,7 +245,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "First-author Solution doc. Reuses BRD flows (flow-01/02/03), users, and goal-01/goal-03 by cross-doc ID; adds flow-04 (unsupported-question decline, not covered by any BRD use case), 8 solution-level requirements, 3 new integration points (business DB, LLM provider, reused checkpoint DB), 4 decisions (decision-19..22), and 6 constraints. Business-state narrative (Request Lifecycle) kept as prose/Mermaid only, not graph nodes — Event/StateMachine kinds belong to System (30d) per cognition-architecture.md's stage table, not Solution (30c); caught and corrected before finalizing. Short hash: RWJt3byYhA."
+          "note": "First-author Solution doc. Reuses BRD flows (flow-01/02/03), users, and goal-01/goal-03 by cross-doc ID; adds flow-04 (unsupported-question decline, not covered by any BRD use case), 8 solution-level requirements, 3 new integration points (business DB, LLM provider, reused checkpoint DB), 4 decisions (decision-19..22), and 6 constraints. Business-state narrative (Request Lifecycle) kept as prose/Mermaid only, not graph nodes \u2014 Event/StateMachine kinds belong to System (30d) per cognition-architecture.md's stage table, not Solution (30c); caught and corrected before finalizing. Short hash: RWJt3byYhA."
         },
         {
           "date": "2026-09-07",
@@ -242,7 +253,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "TRD decision-28 pinned Google Gemini as the LLM provider — updated iface-llm-provider's summary here to match (previously said 'OpenAI/Anthropic per backend/.env.example', now stale since those keys were replaced with GOOGLE_API_KEY). Approval cleared since the hash changed after sign-off; needs re-approval. Short hash: IQ8uudVrJz."
+          "note": "TRD decision-28 pinned Google Gemini as the LLM provider \u2014 updated iface-llm-provider's summary here to match (previously said 'OpenAI/Anthropic per backend/.env.example', now stale since those keys were replaced with GOOGLE_API_KEY). Approval cleared since the hash changed after sign-off; needs re-approval. Short hash: IQ8uudVrJz."
         }
       ]
     },
@@ -272,7 +283,7 @@
         },
         {
           "date": "2026-09-07",
-          "note": "First-author System doc. Formalized the Request Lifecycle as a closed StateMachine (7 states, guarded transitions, per-state invariants) — corrects Solution's narrative diagram into a mechanical one, keeping the AwaitingReview-is-the-pause-point fix. Added 8 Events with payload_shape, 5 DataModels, 3 logical Interfaces (extended with failure_shape), 4 business-rule invariants, 3 quality budgets tightening Architecture's constraints, 12 testable SY-ORCHESTRATION behaviors tracing to Solution's SS-* flows, and reused the 6 Architecture components by cross-doc ID. Two open questions surfaced (checkpoint pruning policy, exact timeout durations) deferred to TRD. Short hash: UR4db8EL86."
+          "note": "First-author System doc. Formalized the Request Lifecycle as a closed StateMachine (7 states, guarded transitions, per-state invariants) \u2014 corrects Solution's narrative diagram into a mechanical one, keeping the AwaitingReview-is-the-pause-point fix. Added 8 Events with payload_shape, 5 DataModels, 3 logical Interfaces (extended with failure_shape), 4 business-rule invariants, 3 quality budgets tightening Architecture's constraints, 12 testable SY-ORCHESTRATION behaviors tracing to Solution's SS-* flows, and reused the 6 Architecture components by cross-doc ID. Two open questions surfaced (checkpoint pruning policy, exact timeout durations) deferred to TRD. Short hash: UR4db8EL86."
         }
       ]
     },
@@ -297,15 +308,15 @@
         },
         {
           "date": "2026-09-07",
-          "note": "PTL caught that the Data Flow sequence diagram skipped comp-calc-agent entirely, jumping straight from Query Tool to Synthesizer — contradicts BRD FR-007 and the TRD's own component/flowchart diagrams, which both correctly included it. Added the missing calculate(rows) step. Short hash: x4b8DstMec."
+          "note": "PTL caught that the Data Flow sequence diagram skipped comp-calc-agent entirely, jumping straight from Query Tool to Synthesizer \u2014 contradicts BRD FR-007 and the TRD's own component/flowchart diagrams, which both correctly included it. Added the missing calculate(rows) step. Short hash: x4b8DstMec."
         },
         {
           "date": "2026-09-07",
-          "note": "Added decision-28: Google Gemini via langchain-google-genai (4.4.0, needs langchain-core>=1.6.1,<2.0.0 — satisfied) is the LLM provider/client for all three agents, replacing the original OpenAI/Anthropic .env placeholders which were never an actual PTL decision. Updated iface-llm-provider, Technology Choices, and Configuration Surface accordingly; backend/.env and .env.example now hold GOOGLE_API_KEY instead. Short hash: pTQU6z7Eaw."
+          "note": "Added decision-28: Google Gemini via langchain-google-genai (4.4.0, needs langchain-core>=1.6.1,<2.0.0 \u2014 satisfied) is the LLM provider/client for all three agents, replacing the original OpenAI/Anthropic .env placeholders which were never an actual PTL decision. Updated iface-llm-provider, Technology Choices, and Configuration Surface accordingly; backend/.env and .env.example now hold GOOGLE_API_KEY instead. Short hash: pTQU6z7Eaw."
         },
         {
           "date": "2026-09-07",
-          "note": "PTL flagged that the Data Flow diagram's single 'checkpoint written' note read as if checkpointing only happens once, contradicting decision-27's own per-superstep claim. Added a clarifying prose paragraph before the diagram and reworded the in-diagram note to say this is the load-bearing checkpoint, not the only one — PostgresSaver checkpoints after every step automatically. Short hash: uOh3bS9HkJ."
+          "note": "PTL flagged that the Data Flow diagram's single 'checkpoint written' note read as if checkpointing only happens once, contradicting decision-27's own per-superstep claim. Added a clarifying prose paragraph before the diagram and reworded the in-diagram note to say this is the load-bearing checkpoint, not the only one \u2014 PostgresSaver checkpoints after every step automatically. Short hash: uOh3bS9HkJ."
         },
         {
           "date": "2026-09-07",
@@ -321,11 +332,11 @@
         },
         {
           "date": "2026-09-07",
-          "note": "Added decision-29 (PTL's explicit choice): comp-calc-agent's tool-calling loop (sum/average/percentage_change, chained for ratios) is built with deepagents.create_deep_agent() (0.4.11, verified against PyPI: needs langchain>=1.3.18 — tighter than ag-ui-langgraph's floor, so this becomes the project's effective langchain floor; langchain-google-genai>=4.3.7, satisfied by the 4.4.0 already pinned for decision-28), not a hand-built StateGraph+ToolNode subgraph. A lighter-weight hand-built alternative was proposed and is recorded in the decision's alternatives for the record. Registered directly as the node (not wrapped in a manual .invoke() call) so it shares the parent's PostgresSaver checkpointer rather than needing its own — noted in both Technology Choices and Persistence Constraints. Short hash: mgvLheEJm3."
+          "note": "Added decision-29 (PTL's explicit choice): comp-calc-agent's tool-calling loop (sum/average/percentage_change, chained for ratios) is built with deepagents.create_deep_agent() (0.4.11, verified against PyPI: needs langchain>=1.3.18 \u2014 tighter than ag-ui-langgraph's floor, so this becomes the project's effective langchain floor; langchain-google-genai>=4.3.7, satisfied by the 4.4.0 already pinned for decision-28), not a hand-built StateGraph+ToolNode subgraph. A lighter-weight hand-built alternative was proposed and is recorded in the decision's alternatives for the record. Registered directly as the node (not wrapped in a manual .invoke() call) so it shares the parent's PostgresSaver checkpointer rather than needing its own \u2014 noted in both Technology Choices and Persistence Constraints. Short hash: mgvLheEJm3."
         },
         {
           "date": "2026-09-07",
-          "note": "Doc was edited outside this session (source untracked — not via /daksh) to make iface-business-db project-owned, same Postgres instance ('synergy', localhost) as the checkpoint tables and requests — a real, substantive decision, but mislabeled as 'decision-29' throughout (~10 places: Scope, Architecture Overview, the interface node, the flowchart, Persistence Constraints, Security Design, Deployment & Operations, Open Questions), colliding with the existing decision-29 (deepagents for the Calculation Agent). Fixed: introduced a proper decision-30 node for the database change and repointed every one of those ~10 references from decision-29 to decision-30. decision-29 now means only deepagents, consistently. Short hash: 6vn6pT3EBE."
+          "note": "Doc was edited outside this session (source untracked \u2014 not via /daksh) to make iface-business-db project-owned, same Postgres instance ('synergy', localhost) as the checkpoint tables and requests \u2014 a real, substantive decision, but mislabeled as 'decision-29' throughout (~10 places: Scope, Architecture Overview, the interface node, the flowchart, Persistence Constraints, Security Design, Deployment & Operations, Open Questions), colliding with the existing decision-29 (deepagents for the Calculation Agent). Fixed: introduced a proper decision-30 node for the database change and repointed every one of those ~10 references from decision-29 to decision-30. decision-29 now means only deepagents, consistently. Short hash: 6vn6pT3EBE."
         }
       ]
     },
@@ -389,7 +400,7 @@
       "revision_history": [
         {
           "date": "2026-09-07",
-          "reason": "Renamed from stage 60 during Daksh 0.4.7→0.6.1 upgrade — no prior content existed. daksh.type frontmatter added to all 4 handbook files (structural only)."
+          "reason": "Renamed from stage 60 during Daksh 0.4.7\u21920.6.1 upgrade \u2014 no prior content existed. daksh.type frontmatter added to all 4 handbook files (structural only)."
         }
       ]
     }
@@ -414,7 +425,7 @@
       "stage": "90",
       "skipped_on": "2026-09-07",
       "dismissed": false,
-      "reason": "Expected at this point in the pipeline — implementation hasn't started yet."
+      "reason": "Expected at this point in the pipeline \u2014 implementation hasn't started yet."
     }
   ],
   "risk_register": [

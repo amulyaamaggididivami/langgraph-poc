@@ -345,8 +345,7 @@ risk-02, risk-04, risk-05 are still live, exactly as intended.
 
 ## Approval
 
-```
-Approved by:
-Role:
-Date:
-```
+Approved by: Vara
+Role:        PTL
+Date:        2026-09-07
+Hash:        28b21fc63fd3…

@@ -312,7 +312,7 @@
       "output": "docs/implementation/ORCHESTRATION/trd.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/implementation/ORCHESTRATION/trd.md": "80f170eec0021f74eb3f477412fdfc51e9dba49402c86674c72c1b412e433f3e"
+        "docs/implementation/ORCHESTRATION/trd.md": "935a1a3af74823244adbdd8a977ae16c70ce347548d697d1bad2e12ff5204c33"
       },
       "approvals": [
         {
@@ -320,7 +320,7 @@
           "role": "PTL",
           "date": "2026-09-07",
           "doc_hash": {
-            "docs/implementation/ORCHESTRATION/trd.md": "80f170eec0021f74eb3f477412fdfc51e9dba49402c86674c72c1b412e433f3e"
+            "docs/implementation/ORCHESTRATION/trd.md": "935a1a3af74823244adbdd8a977ae16c70ce347548d697d1bad2e12ff5204c33"
           }
         }
       ],
@@ -364,6 +364,10 @@
         {
           "date": "2026-09-07",
           "note": "Doc was edited outside this session (source untracked \u2014 not via /daksh) to make iface-business-db project-owned, same Postgres instance ('synergy', localhost) as the checkpoint tables and requests \u2014 a real, substantive decision, but mislabeled as 'decision-29' throughout (~10 places: Scope, Architecture Overview, the interface node, the flowchart, Persistence Constraints, Security Design, Deployment & Operations, Open Questions), colliding with the existing decision-29 (deepagents for the Calculation Agent). Fixed: introduced a proper decision-30 node for the database change and repointed every one of those ~10 references from decision-29 to decision-30. decision-29 now means only deepagents, consistently. Short hash: 6vn6pT3EBE."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Approved, then caught before starting Test Specification (50b): the opening paragraph promised TRD-ORCHESTRATION-NNN requirement IDs that were never actually assigned anywhere in the document \u2014 would have broken 50b's traceability rule (a requirement without a Test mapping blocks approval). Added a new Testable Technical Requirements section (TRD-ORCHESTRATION-001..010) right after Scope, grounded in decisions/sections already in the doc \u2014 no new scope invented. Re-approval needed. Short hash: wyqMsm0o20."
         }
       ]
     },

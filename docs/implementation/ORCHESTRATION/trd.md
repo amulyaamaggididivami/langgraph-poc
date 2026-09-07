@@ -29,6 +29,26 @@ business data tables' own column-level schema (project-owned now, but
 not yet authored here — see `iface-business-db`'s Open Questions entry),
 or the LLM provider's API (external, not owned — `iface-llm-provider`).
 
+## Testable Technical Requirements
+
+Every technical choice above that can fail on its own — independent of
+whether the business behavior it supports (`SY-ORCHESTRATION-NNN`) also
+passes — gets its own ID here, so Test Specification (50b) has something
+concrete to map a `TEST-ORCHESTRATION-NNN` against:
+
+| ID | Requirement | Traces to |
+|---|---|---|
+| TRD-ORCHESTRATION-001 | `PostgresSaver` writes a new checkpoint after every graph superstep, not just at `AwaitingReview` | decision-23, decision-27 |
+| TRD-ORCHESTRATION-002 | A call to `iface-business-db` or `iface-llm-provider` that exceeds 30s raises `event-integration-failure` rather than hanging indefinitely | decision-24 |
+| TRD-ORCHESTRATION-003 | `/chat` and `/review` respond with a valid `ag-ui-protocol` SSE event stream, served via `add_langgraph_fastapi_endpoint` | decision-25 |
+| TRD-ORCHESTRATION-004 | The `requests` table rejects any row with `decline_reason` set while `state != 'Declined'` | §Data Model (`decline_reason_only_when_declined` constraint) |
+| TRD-ORCHESTRATION-005 | The Reviewer's pending-list query is served by `idx_requests_awaiting_review` and returns exactly the rows where `state = 'AwaitingReview'` | §Persistence Constraints |
+| TRD-ORCHESTRATION-006 | A second `POST /review/{thread_id}/decision` on an already-resumed thread returns `already_decided`, not a silent no-op or a duplicate effect | §API Contracts |
+| TRD-ORCHESTRATION-007 | `comp-calc-agent`'s internal `deepagents` tool calls each produce their own checkpoint under the parent's `PostgresSaver`, distinguishable in checkpoint history | decision-29 |
+| TRD-ORCHESTRATION-008 | Business tables and LangGraph's checkpoint tables coexist in the `synergy` Postgres instance with no name collision, and a write to one never touches the other | decision-30 |
+| TRD-ORCHESTRATION-009 | Resuming a `Request` after `Interrupted` never re-invokes a `Task` already `COMPLETED` before the interruption | decision-22, decision-23 |
+| TRD-ORCHESTRATION-010 | `/chat`, `/review`, and `/review/{thread_id}/decision` all return errors matching the one shared error JSON Schema | §API Contracts |
+
 ## Architecture Overview
 
 Every one of System's five internal components (`comp-planner` through
@@ -658,4 +678,4 @@ POC assumes). Audit trail: the
 Approved by: Vara
 Role:        PTL
 Date:        2026-09-07
-Hash:        1d3bbda5d835…
+Hash:        f8bab003cab4…

@@ -228,17 +228,32 @@
       ]
     },
     "30d:ORCHESTRATION": {
-      "status": "not_started",
+      "status": "approved",
       "mode": "greenfield",
       "doc_type": "system-spec",
       "output": "docs/implementation/ORCHESTRATION/system.md",
       "locked_by": null,
-      "doc_hash": null,
-      "approvals": [],
+      "doc_hash": {
+        "docs/implementation/ORCHESTRATION/system.md": "029582f654e8091d6188ecf685d352dfa028940800d81069548adcc20770adf1"
+      },
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/implementation/ORCHESTRATION/system.md": "029582f654e8091d6188ecf685d352dfa028940800d81069548adcc20770adf1"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",
           "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "First-author System doc. Formalized the Request Lifecycle as a closed StateMachine (7 states, guarded transitions, per-state invariants) \u2014 corrects Solution's narrative diagram into a mechanical one, keeping the AwaitingReview-is-the-pause-point fix. Added 8 Events with payload_shape, 5 DataModels, 3 logical Interfaces (extended with failure_shape), 4 business-rule invariants, 3 quality budgets tightening Architecture's constraints, 12 testable SY-ORCHESTRATION behaviors tracing to Solution's SS-* flows, and reused the 6 Architecture components by cross-doc ID. Two open questions surfaced (checkpoint pruning policy, exact timeout durations) deferred to TRD. Short hash: UR4db8EL86."
         }
       ]
     },

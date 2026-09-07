@@ -282,7 +282,9 @@
       "doc_type": "trd",
       "output": "docs/implementation/ORCHESTRATION/trd.md",
       "locked_by": null,
-      "doc_hash": "255245069dfe93c6f0bb2f8e4b6fc76198bab6936d890f093a9c1f00a4010b37",
+      "doc_hash": {
+        "docs/implementation/ORCHESTRATION/trd.md": "1d3bbda5d83517d4a585f8ce11ac615454bc2ecd069213a44c5fb92dbb137507"
+      },
       "approvals": [],
       "revision_history": [
         {
@@ -311,7 +313,19 @@
         },
         {
           "date": "2026-09-07",
-          "note": "Added decision-29: business data (iface-business-db) is project-owned, same Postgres instance as checkpoints — localhost DB 'synergy' (PTL is creating this), not an external system as originally assumed. Reclassified iface-business-db true-external -> remote-but-owned. Clarified PostgresSaver.setup() auto-creates checkpoint tables, no hand-written DDL needed. Updated component diagram, Persistence Constraints, Deployment/Config, Security Design; flagged business table DDL/query set as a new open question. Approval cleared (hash changed) -- needs re-approval. Short hash: 8qhZb0YfNk."
+          "note": "PTL pushed back: a single checkpoint note plus a prose disclaimer still only shows one checkpoint visually, contradicting decision-27's per-superstep claim. Added a checkpoint note after every step (Plan, raw rows, calculations, Response) directly in the diagram instead of relying on prose to explain it away; trimmed the prose paragraph to match. Short hash: 3EjNpGw1qB."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Added a paragraph to Architecture Overview making explicit what the boundary fields only implied: comp-planner/comp-query-tool/comp-calc-agent/comp-synthesizer are LangGraph nodes (functions that run), while comp-orchestrator is the StateGraph structure itself (edges/routing, not a node) and comp-checkpoint-store is the attached PostgresSaver, not a step in the sequence. Also ties this to the Request Lifecycle: one state for the whole Request, not one per node. Short hash: YcHaGgrqrh."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Added decision-29 (PTL's explicit choice): comp-calc-agent's tool-calling loop (sum/average/percentage_change, chained for ratios) is built with deepagents.create_deep_agent() (0.4.11, verified against PyPI: needs langchain>=1.3.18 — tighter than ag-ui-langgraph's floor, so this becomes the project's effective langchain floor; langchain-google-genai>=4.3.7, satisfied by the 4.4.0 already pinned for decision-28), not a hand-built StateGraph+ToolNode subgraph. A lighter-weight hand-built alternative was proposed and is recorded in the decision's alternatives for the record. Registered directly as the node (not wrapped in a manual .invoke() call) so it shares the parent's PostgresSaver checkpointer rather than needing its own — noted in both Technology Choices and Persistence Constraints. Short hash: mgvLheEJm3."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Doc was edited outside this session (source untracked — not via /daksh) to make iface-business-db project-owned, same Postgres instance ('synergy', localhost) as the checkpoint tables and requests — a real, substantive decision, but mislabeled as 'decision-29' throughout (~10 places: Scope, Architecture Overview, the interface node, the flowchart, Persistence Constraints, Security Design, Deployment & Operations, Open Questions), colliding with the existing decision-29 (deepagents for the Calculation Agent). Fixed: introduced a proper decision-30 node for the database change and repointed every one of those ~10 references from decision-29 to decision-30. decision-29 now means only deepagents, consistently. Short hash: 6vn6pT3EBE."
         }
       ]
     },

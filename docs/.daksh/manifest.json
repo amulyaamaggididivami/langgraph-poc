@@ -282,9 +282,7 @@
       "doc_type": "trd",
       "output": "docs/implementation/ORCHESTRATION/trd.md",
       "locked_by": null,
-      "doc_hash": {
-        "docs/implementation/ORCHESTRATION/trd.md": "646d611c92c703632d19b8be974210fe81a700717db68d4d9fbc6ea3e88e5fdb"
-      },
+      "doc_hash": "255245069dfe93c6f0bb2f8e4b6fc76198bab6936d890f093a9c1f00a4010b37",
       "approvals": [],
       "revision_history": [
         {
@@ -310,6 +308,10 @@
         {
           "date": "2026-09-07",
           "note": "PTL reported the sequence diagram stopped rendering. Root cause: the previous edit's Note text contained a semicolon, which Mermaid's sequenceDiagram parser treats as a statement separator, breaking the diagram. Shortened the note and removed the semicolon; verified no other semicolons remain inside any mermaid block in this file. Short hash: NoUXeWL1iR."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Added decision-29: business data (iface-business-db) is project-owned, same Postgres instance as checkpoints — localhost DB 'synergy' (PTL is creating this), not an external system as originally assumed. Reclassified iface-business-db true-external -> remote-but-owned. Clarified PostgresSaver.setup() auto-creates checkpoint tables, no hand-written DDL needed. Updated component diagram, Persistence Constraints, Deployment/Config, Security Design; flagged business table DDL/query set as a new open question. Approval cleared (hash changed) -- needs re-approval. Short hash: 8qhZb0YfNk."
         }
       ]
     },

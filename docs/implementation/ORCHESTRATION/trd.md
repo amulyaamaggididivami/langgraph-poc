@@ -20,12 +20,14 @@ currently the PTL, Vara, alone.
 ## Scope
 
 This TRD designs: the component/module internal structure, the Postgres
-persistence layer (both LangGraph's own checkpoint storage and one
-project-owned tracking table), the SSE API contracts for `/chat` and
-`/review`, and the deployment substrate this module runs on. It does
-**not** design: screens or copy (no stage 40 selected), the business
-database's schema (external, not owned — `iface-business-db`), or the
-LLM provider's API (external, not owned — `iface-llm-provider`).
+persistence layer (LangGraph's own checkpoint storage, one project-owned
+tracking table, and — as of `decision-29` — the business data tables,
+all three in one project-owned Postgres instance), the SSE API contracts
+for `/chat` and `/review`, and the deployment substrate this module runs
+on. It does **not** design: screens or copy (no stage 40 selected), the
+business data tables' own column-level schema (project-owned now, but
+not yet authored here — see `iface-business-db`'s Open Questions entry),
+or the LLM provider's API (external, not owned — `iface-llm-provider`).
 
 ## Architecture Overview
 
@@ -42,13 +44,24 @@ not placeholders.
 
 The single architectural choice that shapes everything else: **LangGraph's
 own `PostgresSaver` is the checkpoint mechanism** (`decision-23`), not
-hand-rolled persistence. That means this project does not design a
-checkpoint table schema — `langgraph-checkpoint-postgres` owns and
-migrates its own internal tables. What this project *does* own is one
-thin tracking table, `requests` (`decision-26`), holding only the
-business-facing fields the Reviewer's `/review` list needs to query —
-`iface-checkpoint-db`'s actual state lives inside LangGraph's tables, not
-duplicated here.
+hand-rolled persistence. That means this project does not hand-write a
+checkpoint table schema at all — `langgraph-checkpoint-postgres` creates
+and migrates its own internal tables automatically the first time
+`PostgresSaver.setup()` runs; there is no DDL for `checkpoints`,
+`checkpoint_blobs`, or `checkpoint_writes` for anyone to author. What this
+project *does* own is one thin tracking table, `requests` (`decision-26`),
+holding only the business-facing fields the Reviewer's `/review` list
+needs to query — `iface-checkpoint-db`'s actual state lives inside
+LangGraph's tables, not duplicated here.
+
+As of `decision-29`, the business data this module reads (`iface-business-db`)
+is **not** an external, pre-existing system either — it's a Postgres
+database the PTL provisions directly (localhost, DB name `synergy` for
+this POC), in the **same Postgres instance** as the checkpoint tables and
+`requests`. One server, three concerns, each still a distinct logical
+seam (different tables, different access pattern: read-only queries
+against business tables vs. `PostgresSaver`'s own read/write API against
+its tables).
 
 <details><summary>Graph: Where are the seams and the contracts, and what events cross them?</summary>
 
@@ -71,7 +84,7 @@ Components:
   - comp-chat-route :: Chat Route (/chat) | kind: component | summary: "New at this depth — designed here, not just referenced. SSE endpoint via ag-ui-langgraph's add_langgraph_fastapi_endpoint (decision-25)." | spec: [§API Contracts](trd.md#api-contracts) | boundary: "backend/app/api/routes/chat.py (planned)"
   - comp-review-route :: Review Route (/review) | kind: component | summary: "New at this depth — same SSE pattern as comp-chat-route, separate connection (architecture decision-12)." | spec: [§API Contracts](trd.md#api-contracts) | boundary: "backend/app/api/routes/review.py (planned)"
 Logical Interfaces:
-  - iface-business-db :: Business Database (read-only) | kind: interface | summary: "Category: true-external — pre-existing system this module does not own." | spec: [system.md §Logical Interfaces](system.md#logical-interfaces) | shape: "read-only SQL, exact queries TBD by predefined-query set (BRD constraint-02)" | version: "unversioned — external system" | compatibility: "breaking — this module does not own its schema"
+  - iface-business-db :: Business Database (read-only) | kind: interface | summary: "Category: remote-but-owned (decision-29) — a Postgres DB the PTL provisions, same instance as iface-checkpoint-db, not an external pre-existing system." | spec: [§Persistence Constraints](trd.md#persistence-constraints) | shape: "read-only SQL, exact table/column schema TBD by predefined-query set (BRD constraint-02) — see Open Questions" | version: "project Postgres instance, same as iface-checkpoint-db" | compatibility: "additive — this project now controls the schema and can evolve it, unlike a true-external system"
   - iface-llm-provider :: LLM Provider | kind: interface | summary: "Category: true-external — Google Gemini, via langchain-google-genai (decision-28)." | spec: [§Technology Choices](trd.md#technology-choices) | shape: "prompt/response per agent, JSON Schema in §API Contracts" | version: "unversioned — third-party service" | compatibility: "breaking — outside this module's control"
   - iface-checkpoint-db :: Checkpoint DB Interface | kind: interface | summary: "Category: remote-but-owned — Postgres we provision, but langgraph-checkpoint-postgres owns the internal schema (decision-23)." | spec: [§Persistence Constraints](trd.md#persistence-constraints) | shape: "langgraph-checkpoint-postgres's own tables (checkpoints, checkpoint_blobs, checkpoint_writes) — not redesigned here" | version: "langgraph-checkpoint-postgres 3.x" | compatibility: "breaking — a major-version bump of the library can change its internal schema; pin the version (§Technology Choices)"
   - iface-chat-api :: Chat AG-UI Channel | kind: interface | summary: "Category: remote-but-owned — this module controls both ends of the contract shape." | spec: [§API Contracts](trd.md#api-contracts) | shape: "POST /chat returns an SSE stream of ag-ui-protocol BaseEvents; JSON Schema in §API Contracts" | version: "v1.0.0" | compatibility: "additive — no consumers exist yet to break"
@@ -92,6 +105,7 @@ Decisions:
   - decision-26 :: One thin project-owned `requests` table, LangGraph owns checkpoint internals | kind: decision | summary: "A single requests table (DDL in §Data Model) tracks only the fields the Reviewer's pending-list query needs; it does not duplicate LangGraph's own checkpoint blob storage." | spec: [§Data Model](trd.md#data-model) | alternatives: "Querying LangGraph's internal checkpoint tables directly for the Reviewer's pending list was considered and rejected — those tables are private implementation detail of the checkpointer library, not shaped for business queries, and could change on a LangGraph upgrade (decision-23's reversal_trigger)." | reversal_trigger: "If langgraph-checkpoint-postgres ever exposes an official queryable view matching this need, drop the project-owned table in favor of it."
   - decision-27 :: LangGraph's own checkpoint history satisfies the trace-completeness budget | kind: decision | summary: "constraint-trace-completeness-budget (SY-007) is satisfied by PostgresSaver's built-in per-superstep checkpoint history, not a separate custom audit table." | spec: [§State Machines](trd.md#state-machines) | alternatives: "A dedicated request_transitions audit table (one row per transition) was considered and rejected as redundant — PostgresSaver already persists a new checkpoint at each graph superstep, which is already a full transition history retrievable via get_state_history." | reversal_trigger: "If get_state_history proves too slow or unwieldy for tracing at demo scale, add a lightweight audit table then, not preemptively."
   - decision-28 :: Google Gemini via langchain-google-genai, one provider for all three agents | kind: decision | summary: "comp-planner, comp-calc-agent, and comp-synthesizer all call Google Gemini through langchain-google-genai's ChatGoogleGenerativeAI class — not OpenAI/Anthropic (backend/.env.example's original placeholders), and not the raw google-genai SDK directly." | spec: [§Technology Choices](trd.md#technology-choices) | alternatives: "Raw google-genai SDK calls were considered and rejected — langchain-google-genai integrates directly with LangGraph's existing message types (already a project dependency via langchain-core), so nodes exchange the same message objects throughout instead of converting at the LLM-call boundary. OpenAI and Anthropic were the original .env placeholders from project setup but were never an actual PTL decision; Gemini is the PTL's explicit choice." | reversal_trigger: "If Gemini's tool-calling or structured-output support proves insufficient for the Planner's Plan-schema requirement (FR-004), reassess against langchain-openai/langchain-anthropic then."
+  - decision-29 :: Business data DB is project-owned, same Postgres instance as checkpoints | kind: decision | summary: "The sales/order/customer/product data (iface-business-db) lives in a Postgres database the PTL provisions directly — localhost, DB name `synergy` — in the same Postgres instance as the checkpoint tables and requests, not a separate external system. Checkpoint tables still need no hand-written DDL: PostgresSaver.setup() creates them automatically." | spec: [§Persistence Constraints](trd.md#persistence-constraints) | alternatives: "Treating the business DB as a true-external system on a different server was the original assumption (architecture/system.md) — superseded once the PTL chose to provision real data directly for this POC (vision.md decision-09) rather than point at someone else's live system." | reversal_trigger: "If this POC ever needs to point at an actual third-party production database instead of a PTL-provisioned one, revert iface-business-db to true-external and split it back onto its own instance."
 
 datamodel-request :: Request | kind: datamodel | summary: "Backed by the project-owned requests table (decision-26) — the only entity with real SQL DDL in this project." | spec: [§Data Model](trd.md#data-model) | shape: "SQL DDL in §Data Model"
 datamodel-plan :: Plan | kind: datamodel | summary: "Lives inside the LangGraph State TypedDict, checkpointed automatically by PostgresSaver — not a separate SQL table." | spec: [§Data Model](trd.md#data-model) | shape: "JSON Schema in §Data Model"
@@ -133,6 +147,7 @@ edges:
   - decision-25 -governs-> comp-review-route
   - decision-26 -governs-> datamodel-request
   - decision-27 -governs-> statemachine-request
+  - decision-29 -governs-> iface-business-db
 ```
 
 </details>
@@ -154,9 +169,11 @@ flowchart TB
         SY[comp-synthesizer]
         CS[comp-checkpoint-store]
     end
-    DB[(iface-business-db)]
     LLM[[iface-llm-provider]]
-    PG[(iface-checkpoint-db\nPostgres)]
+    subgraph PGI["Postgres — synergy (localhost, decision-29)"]
+        DB[(iface-business-db\nbusiness tables)]
+        PG[(iface-checkpoint-db\ncheckpoints + requests)]
+    end
 
     FE -- iface-chat-api / iface-review-api --> CR
     FE -- iface-chat-api / iface-review-api --> RR
@@ -285,8 +302,20 @@ For the one entity this project owns (`requests`):
 
 For `iface-checkpoint-db`'s own tables (`checkpoints`, `checkpoint_blobs`,
 `checkpoint_writes`): owned and migrated by `langgraph-checkpoint-postgres`
-(decision-23). This project runs that package's migration tooling at
-deploy time but does not author or alter that schema directly.
+(decision-23). Nobody hand-writes DDL for these — calling
+`PostgresSaver.setup()` once (e.g. at app startup, or as a one-off script)
+creates them automatically if they don't already exist. This project runs
+that setup call but does not author or alter that schema directly.
+
+For `iface-business-db` (decision-29): same Postgres instance
+(`synergy`, localhost), different tables. This project owns the instance
+now, but the sales/order/customer/product table DDL itself is not
+authored in this TRD yet — see Open Questions. Whatever connection this
+module uses to query those tables should be read-only in practice
+(`constraint-01`), even though, unlike a true-external system, the same
+Postgres instance also holds tables this module writes to
+(`checkpoints`, `requests`) — that read/write split is enforced by which
+queries the code issues, not by two different database servers.
 
 ## State Machines
 
@@ -513,10 +542,14 @@ No authentication or authorization (BRD constraint-03, architecture
 constraint-security) — unchanged by this TRD. The `already_decided` error
 code (§API Contracts) is the closest thing to an authorization check this
 module performs, and it is a state check, not an identity check. Data
-protection: `iface-business-db` access is read-only at the connection
-level (§Persistence Constraints does not grant this module write
-credentials to that external database — a deployment-time configuration
-this TRD assumes, not one it can enforce in code alone). Audit trail: the
+protection: `iface-business-db` access should be read-only in practice
+(constraint-01) — but since decision-29 puts it in the same Postgres
+instance this module also writes to (checkpoints, `requests`), that
+read-only boundary is enforced by which queries the application code
+issues, not by a separate database or a read-only DB role (neither is
+designed here; a real deployment would want a read-only Postgres role
+scoped to the business tables, not the shared superuser connection this
+POC assumes). Audit trail: the
 `requests` table's `updated_at` plus LangGraph's own checkpoint history
 (`decision-27`) together cover every state transition.
 
@@ -534,9 +567,11 @@ this TRD assumes, not one it can enforce in code alone). Audit trail: the
 - **Environment.** Deploys to `env-local-dev` only (architecture
   decision-11 — no staging or production environment exists).
 - **Infrastructure.** Runs on `infra-uvicorn` (backend process) and
-  `infra-postgres-container` (both `requests` and LangGraph's own tables,
-  same Postgres instance — architecture decision-10). The frontend runs
-  on `infra-vite`, unaffected by this TRD.
+  `infra-postgres-container` — `requests`, LangGraph's own checkpoint
+  tables, *and* the business data tables all live in one Postgres
+  instance (localhost, DB name `synergy` for this POC — architecture
+  decision-10, extended by decision-29). The frontend runs on
+  `infra-vite`, unaffected by this TRD.
 - **Pipeline.** None — architecture decision-11 means no CI/CD pipeline
   exists for this module. Not raised as a roadmap change; the POC's build
   order (roadmap decision-14) does not require one.
@@ -547,10 +582,13 @@ this TRD assumes, not one it can enforce in code alone). Audit trail: the
 - **Failure modes.** `event-integration-failure` (phase: runtime) is the
   one module-specific runtime risk this TRD names — mitigated by
   `decision-24`'s bounded wait, not auto-recovered (no retry).
-- **Configuration surface.** `DATABASE_URL`/`POSTGRES_*` and
-  `GOOGLE_API_KEY` (decision-28 — replaces the original OpenAI/Anthropic
-  placeholders), all in `backend/.env` (gitignored, `invariant-config`
-  from architecture). No feature flags exist.
+- **Configuration surface.** `DATABASE_URL`/`POSTGRES_*` (pointing at the
+  `synergy` database, decision-29) and `GOOGLE_API_KEY` (decision-28 —
+  replaces the original OpenAI/Anthropic placeholders), all in
+  `backend/.env` (gitignored, `invariant-config` from architecture). One
+  connection string serves business-table reads, checkpoint reads/writes,
+  and `requests` reads/writes alike — there is no second `.env` variable
+  for a separate business-DB host. No feature flags exist.
 - **Rollback story.** No migration exists yet to roll back — the
   `requests` table is new. Once created, dropping it is safe in isolation
   (no other table references it — no foreign keys, per §Persistence
@@ -576,6 +614,10 @@ this TRD assumes, not one it can enforce in code alone). Audit trail: the
   for PTL confirmation that an explicit error is preferred over the BRD's
   original silent framing — not a blocker, but worth a conscious yes.
   `[open]`
+- **Business data table schema** — decision-29 makes `iface-business-db`
+  project-owned (DB `synergy`), but the actual sales/order/customer/product
+  table DDL, and which 3-4 predefined queries (`comp-query-tool`,
+  constraint-02) run against it, are not authored in this TRD yet. `[open]`
 
 ## Approval
 

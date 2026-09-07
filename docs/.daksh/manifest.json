@@ -372,17 +372,36 @@
       ]
     },
     "50b:ORCHESTRATION": {
-      "status": "not_started",
+      "status": "approved",
       "mode": "greenfield",
       "doc_type": "test-specification",
       "output": "docs/implementation/ORCHESTRATION/test-specification.md",
       "locked_by": null,
-      "doc_hash": null,
-      "approvals": [],
+      "doc_hash": {
+        "docs/implementation/ORCHESTRATION/test-specification.md": "43964e92c69d62d777a1c58a628786217fdb856c07af3ccc1138caaa66915a3c"
+      },
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/implementation/ORCHESTRATION/test-specification.md": "43964e92c69d62d777a1c58a628786217fdb856c07af3ccc1138caaa66915a3c"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",
           "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "First-author Test Specification. Maps all 4 SS-*, 12 SY-*, and 10 TRD-* requirements to 27 TEST-ORCHESTRATION-NNN cases (Unit x6, Persistence/Checkpoint x6, API Contract x4, E2E x4, Edge/Failure/Recovery x6, Frontend x1) \u2014 no requirement left unmapped, per this stage's own approval-blocking rule. All 27 Test IDs registered in manifest.traceability (stage 50b, status not_started). Fake-LLM-based unit/integration tests, no real Gemini calls in the automated suite. No numeric coverage target set (POC, matches constraint-perf); pass condition is traceability completeness. Short hash: t6HDSJXVCx."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "approve.py rejected the first attempt: the Traceability table used abbreviated IDs (TEST-001) instead of the full TEST-ORCHESTRATION-001 form the script's line-based mapping check requires \u2014 every SS-*/SY-*/TRD-* row was flagged as unmapped even though the mapping was correct in substance. Fixed all 26 table rows to the full ID form; verified via traceability.py's missing_test_mappings() directly before re-attempting approval. Short hash: Q8BhgJ3hKq."
         }
       ]
     },
@@ -437,7 +456,252 @@
     }
   },
   "contracts": {},
-  "traceability": {},
+  "traceability": {
+    "TEST-ORCHESTRATION-001": {
+      "parent": [
+        "SS-ORCHESTRATION-001",
+        "SY-ORCHESTRATION-001"
+      ],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-002": {
+      "parent": [
+        "SS-ORCHESTRATION-004",
+        "SY-ORCHESTRATION-004"
+      ],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-003": {
+      "parent": "TRD-ORCHESTRATION-004",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-004": {
+      "parent": "TRD-ORCHESTRATION-007",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-005": {
+      "parent": "invariant-task-status-closed",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-006": {
+      "parent": "SY-ORCHESTRATION-006",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-007": {
+      "parent": "FR-008",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-008": {
+      "parent": "constraint-01",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-009": {
+      "parent": "TRD-ORCHESTRATION-001",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-010": {
+      "parent": [
+        "SY-ORCHESTRATION-012",
+        "TRD-ORCHESTRATION-002"
+      ],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-011": {
+      "parent": "TRD-ORCHESTRATION-003",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-012": {
+      "parent": "TRD-ORCHESTRATION-005",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-013": {
+      "parent": "TRD-ORCHESTRATION-006",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-014": {
+      "parent": "TRD-ORCHESTRATION-007",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-015": {
+      "parent": "TRD-ORCHESTRATION-008",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-016": {
+      "parent": "TRD-ORCHESTRATION-010",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-017": {
+      "parent": [
+        "SS-ORCHESTRATION-001",
+        "SY-ORCHESTRATION-001",
+        "SY-ORCHESTRATION-007"
+      ],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-018": {
+      "parent": [
+        "SS-ORCHESTRATION-002",
+        "SY-ORCHESTRATION-002",
+        "SY-ORCHESTRATION-007"
+      ],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-019": {
+      "parent": [
+        "SS-ORCHESTRATION-003",
+        "SY-ORCHESTRATION-003",
+        "TRD-ORCHESTRATION-009"
+      ],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-020": {
+      "parent": [
+        "SS-ORCHESTRATION-004",
+        "SY-ORCHESTRATION-004",
+        "SY-ORCHESTRATION-007"
+      ],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-021": {
+      "parent": "SY-ORCHESTRATION-005",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-022": {
+      "parent": "SY-ORCHESTRATION-008",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-023": {
+      "parent": "SY-ORCHESTRATION-009",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-024": {
+      "parent": "SY-ORCHESTRATION-010",
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-025": {
+      "parent": [
+        "SY-ORCHESTRATION-011",
+        "TRD-ORCHESTRATION-009"
+      ],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-026": {
+      "parent": [],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    },
+    "TEST-ORCHESTRATION-027": {
+      "parent": [],
+      "children": [],
+      "stage": "50b",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "not_started"
+    }
+  },
   "change_records": {},
   "last_enhanced_version": "0.6.1",
   "doc_gaps": [

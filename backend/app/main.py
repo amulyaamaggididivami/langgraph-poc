@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import chat, health
+from app.api.routes import health
 from app.constants.config import (
     APP_TITLE,
     CORS_ALLOWED_HEADERS,
@@ -19,4 +19,3 @@ app.add_middleware(
 )
 
 app.include_router(health.router, tags=["health"])
-app.include_router(chat.router, tags=["chat"])

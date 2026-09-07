@@ -1,0 +1,6 @@
+# ORCHESTRATION module document order — maintained by each 40-band/50-band stage.
+order = [
+  "solution.md",
+  "system.md",
+  "trd.md",
+]

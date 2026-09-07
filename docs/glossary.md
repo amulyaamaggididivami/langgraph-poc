@@ -31,3 +31,9 @@ condition that confirms one FR is satisfied.
 
 Proof of Concept — a scoped, non-production build meant to validate a
 technical approach before committing to full delivery.
+
+## TRD
+
+Technical Requirements Document — the stage-50a Daksh artifact that turns
+an approved module System spec into a concrete implementation contract:
+component diagram, formal data/API schemas, and deployment detail.

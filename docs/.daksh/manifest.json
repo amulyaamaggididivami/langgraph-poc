@@ -194,24 +194,15 @@
       ]
     },
     "30c:ORCHESTRATION": {
-      "status": "approved",
+      "status": "pending_approval",
       "mode": "greenfield",
       "doc_type": "solution-spec",
       "output": "docs/implementation/ORCHESTRATION/solution.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/implementation/ORCHESTRATION/solution.md": "1ac614ed45a0d5753f52ace1b26e75a03d1539c54c74b453660700d71d85371c"
+        "docs/implementation/ORCHESTRATION/solution.md": "4daf8ac46908158dff66facc90559453716613285ecf9abab0437fcfe94d5604"
       },
-      "approvals": [
-        {
-          "by": "Vara",
-          "role": "PTL",
-          "date": "2026-09-07",
-          "doc_hash": {
-            "docs/implementation/ORCHESTRATION/solution.md": "1ac614ed45a0d5753f52ace1b26e75a03d1539c54c74b453660700d71d85371c"
-          }
-        }
-      ],
+      "approvals": [],
       "revision_history": [
         {
           "date": "2026-09-07",
@@ -224,6 +215,10 @@
         {
           "date": "2026-09-07",
           "note": "PTL corrected the Request Lifecycle diagram: Human Approval happens right after the Synthesizer, so AwaitingReview is itself the pause-for-approval state. The diagram had wrongly shown the crash/interruption transition coming off BeingAnalyzed ('before Human Approval'); BRD flow-03's own trigger text says interruption happens 'after pausing for approval', so it now transitions from AwaitingReview instead. Rewrote the accompanying prose bullet to match. Short hash: 4qEmu5KjIp."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "TRD decision-28 pinned Google Gemini as the LLM provider — updated iface-llm-provider's summary here to match (previously said 'OpenAI/Anthropic per backend/.env.example', now stale since those keys were replaced with GOOGLE_API_KEY). Approval cleared since the hash changed after sign-off; needs re-approval. Short hash: IQ8uudVrJz."
         }
       ]
     },
@@ -258,17 +253,39 @@
       ]
     },
     "50a:ORCHESTRATION": {
-      "status": "not_started",
+      "status": "pending_approval",
       "mode": "greenfield",
       "doc_type": "trd",
       "output": "docs/implementation/ORCHESTRATION/trd.md",
       "locked_by": null,
-      "doc_hash": null,
+      "doc_hash": {
+        "docs/implementation/ORCHESTRATION/trd.md": "646d611c92c703632d19b8be974210fe81a700717db68d4d9fbc6ea3e88e5fdb"
+      },
       "approvals": [],
       "revision_history": [
         {
           "date": "2026-09-07",
           "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "First-author TRD. Key decisions: langgraph-checkpoint-postgres's PostgresSaver for checkpointing (decision-23, not hand-rolled persistence); 30s bounded timeout for external calls (decision-24, PTL choice); SSE via ag-ui-langgraph's add_langgraph_fastapi_endpoint (decision-25); one thin project-owned `requests` table for the Reviewer's pending-list query, LangGraph owns its own checkpoint internals (decision-26); LangGraph's built-in checkpoint history satisfies the trace-completeness budget instead of a custom audit table (decision-27). Full SQL DDL, JSON Schema API contracts, guarded state-transition table with side effects, and deployment substrate referencing architecture's env-local-dev/infra IDs (decision-11: no pipeline exists, confirmed unchanged by PTL). All 6 architecture components passed the deletion test unchanged; comp-chat-route/comp-review-route designed as real seams for the first time. 3 open questions flagged for TRD-time follow-up (retention policy, decline-reason category set, an already_decided error scope addition beyond what BRD literally specified). Short hash: nehzyHrgss."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "PTL caught that the Data Flow sequence diagram skipped comp-calc-agent entirely, jumping straight from Query Tool to Synthesizer — contradicts BRD FR-007 and the TRD's own component/flowchart diagrams, which both correctly included it. Added the missing calculate(rows) step. Short hash: x4b8DstMec."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "Added decision-28: Google Gemini via langchain-google-genai (4.4.0, needs langchain-core>=1.6.1,<2.0.0 — satisfied) is the LLM provider/client for all three agents, replacing the original OpenAI/Anthropic .env placeholders which were never an actual PTL decision. Updated iface-llm-provider, Technology Choices, and Configuration Surface accordingly; backend/.env and .env.example now hold GOOGLE_API_KEY instead. Short hash: pTQU6z7Eaw."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "PTL flagged that the Data Flow diagram's single 'checkpoint written' note read as if checkpointing only happens once, contradicting decision-27's own per-superstep claim. Added a clarifying prose paragraph before the diagram and reworded the in-diagram note to say this is the load-bearing checkpoint, not the only one — PostgresSaver checkpoints after every step automatically. Short hash: uOh3bS9HkJ."
+        },
+        {
+          "date": "2026-09-07",
+          "note": "PTL reported the sequence diagram stopped rendering. Root cause: the previous edit's Note text contained a semicolon, which Mermaid's sequenceDiagram parser treats as a statement separator, breaking the diagram. Shortened the note and removed the semicolon; verified no other semicolons remain inside any mermaid block in this file. Short hash: NoUXeWL1iR."
         }
       ]
     },

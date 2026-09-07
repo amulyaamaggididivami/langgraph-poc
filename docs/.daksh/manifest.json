@@ -238,15 +238,24 @@
       ]
     },
     "30c:ORCHESTRATION": {
-      "status": "pending_approval",
+      "status": "approved",
       "mode": "greenfield",
       "doc_type": "solution-spec",
       "output": "docs/implementation/ORCHESTRATION/solution.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/implementation/ORCHESTRATION/solution.md": "4daf8ac46908158dff66facc90559453716613285ecf9abab0437fcfe94d5604"
+        "docs/implementation/ORCHESTRATION/solution.md": "5b72d5e8230b635cb02290f9e754f316e5483c69417df0340ba2b8071c500be3"
       },
-      "approvals": [],
+      "approvals": [
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-07",
+          "doc_hash": {
+            "docs/implementation/ORCHESTRATION/solution.md": "5b72d5e8230b635cb02290f9e754f316e5483c69417df0340ba2b8071c500be3"
+          }
+        }
+      ],
       "revision_history": [
         {
           "date": "2026-09-07",

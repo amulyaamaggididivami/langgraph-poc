@@ -15,6 +15,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.graph.llm import get_llm
 from app.graph.state import OrchestratorState
+from app.graph.timeout import with_timeout
 from app.prompts.synthesizer import SYSTEM_PROMPT
 
 
@@ -37,11 +38,13 @@ def synthesizer_node(state: OrchestratorState, llm: Optional[BaseChatModel] = No
     `synthesized_response` to one natural-language answer."""
     llm = llm or _default_llm()
 
-    response = llm.invoke(
+    # TASK-ORCHESTRATION-018: bounded to decision-24's 30s iface-llm-provider deadline.
+    response = with_timeout(
+        llm.invoke,
         [
             SystemMessage(content=SYSTEM_PROMPT),
             HumanMessage(content=_build_user_message(state)),
-        ]
+        ],
     )
 
     return {"synthesized_response": response.content}

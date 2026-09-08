@@ -1,10 +1,24 @@
-"""Unit tests for TASK-ORCHESTRATION-008 (StateGraph wiring).
+"""Unit tests for TASK-ORCHESTRATION-008 (StateGraph wiring) and the
+`requests`-table writes added to `extract_question`/`record_decline`/
+`approval_gate` (originally TASK-ORCHESTRATION-009/014/016's job,
+fixed here after testing found the table stayed empty through a real
+run).
 
 Covers TEST-ORCHESTRATION-007. Uses `InMemorySaver` (fast, no real
 Postgres needed) and fakes for planner/calc_agent/synthesizer so no real
 LLM call happens — real-Postgres checkpoint-sharing verification is
-TASK-ORCHESTRATION-013's job, not this one's.
+TASK-ORCHESTRATION-013's job, and real-Postgres requests-table
+verification is `tests/test_requests_repo.py`'s, not this file's.
+
+`extract_question`/`record_decline`/`approval_gate` are async now (they
+await the requests-table repo), so every graph run here goes through
+`_ainvoke` (`graph.ainvoke` under `asyncio.run`) — LangGraph's sync
+`.invoke()` cannot run a graph containing any async node at all (raises
+`TypeError` immediately), confirmed directly before converting this
+file.
 """
+
+import asyncio
 
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
@@ -12,6 +26,39 @@ from langgraph.types import Command
 
 from app.graph.graph import build_graph
 from app.graph.nodes.query_tool import query_execution_tool_node
+
+
+def _ainvoke(graph, input_, config):
+    return asyncio.run(graph.ainvoke(input_, config))
+
+
+class _FakeRequestsRepo:
+    """In-memory stand-in for `app.persistence.requests_repo` — same
+    async method names, no real Postgres. Records every call so tests
+    can assert on the exact sequence of writes, not just the final row."""
+
+    def __init__(self):
+        self.rows = {}
+        self.calls = []
+
+    async def insert_received(self, thread_id, question_text):
+        self.calls.append(("insert_received", thread_id, question_text))
+        self.rows[thread_id] = {"state": "Received", "question_text": question_text, "decline_reason": None}
+
+    async def update_state(self, thread_id, state, *, decline_reason=None):
+        self.calls.append(("update_state", thread_id, state, decline_reason))
+        self.rows[thread_id]["state"] = state
+        self.rows[thread_id]["decline_reason"] = decline_reason
+
+    async def get_request(self, thread_id):
+        return self.rows.get(thread_id)
+
+    async def get_pending_reviews(self):
+        return [
+            {"thread_id": tid, "question_text": row["question_text"]}
+            for tid, row in self.rows.items()
+            if row["state"] == "AwaitingReview"
+        ]
 
 
 def _plan(with_calc_task: bool):
@@ -94,10 +141,11 @@ def test_declined_question_skips_the_rest_of_the_pipeline():
         query_tool=tracking_query_tool,
         calc_agent=fake_calc_agent,
         synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
     )
 
     config = {"configurable": {"thread_id": "t-declined"}}
-    result = graph.invoke({"question": "what's the weather"}, config)
+    result = _ainvoke(graph, {"question": "what's the weather"}, config)
 
     assert result["decline_reason"] == "unmatched_intent"
     assert query_tool_calls == []
@@ -115,10 +163,11 @@ def test_plan_with_query_and_calc_task_runs_the_full_pipeline():
         planner=_make_fake_planner(plan=_plan(with_calc_task=True)),
         calc_agent=fake_calc_agent,
         synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
     )
 
     config = {"configurable": {"thread_id": "t-full"}}
-    result = graph.invoke({"question": "total sales, summed"}, config)
+    result = _ainvoke(graph, {"question": "total sales, summed"}, config)
 
     # the dependent step (calc_agent) received the query tool's output
     assert fake_calc_agent.call_count == 1
@@ -140,10 +189,11 @@ def test_plan_with_only_a_query_task_skips_the_calc_agent():
         planner=_make_fake_planner(plan=_plan(with_calc_task=False)),
         calc_agent=fake_calc_agent,
         synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
     )
 
     config = {"configurable": {"thread_id": "t-query-only"}}
-    result = graph.invoke({"question": "list total sales rows"}, config)
+    result = _ainvoke(graph, {"question": "list total sales rows"}, config)
 
     assert fake_calc_agent.call_count == 0
     assert synth_captured["state"]["raw_rows"] is not None
@@ -180,10 +230,11 @@ def test_plan_with_only_a_calc_task_routes_directly_to_calc_agent():
         query_tool=tracking_query_tool,
         calc_agent=fake_calc_agent,
         synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
     )
 
     config = {"configurable": {"thread_id": "t-calc-only"}}
-    result = graph.invoke({"question": "what is 2+3"}, config)
+    result = _ainvoke(graph, {"question": "what is 2+3"}, config)
 
     assert query_tool_calls == []
     assert fake_calc_agent.call_count == 1
@@ -201,9 +252,9 @@ def test_chat_style_messages_input_is_translated_into_a_question():
         captured["question"] = state["question"]
         return {"decline_reason": "unmatched_intent"}
 
-    graph = build_graph(checkpointer=InMemorySaver(), planner=fake_planner)
+    graph = build_graph(checkpointer=InMemorySaver(), planner=fake_planner, requests_repo=_FakeRequestsRepo())
     config = {"configurable": {"thread_id": "t-messages-in"}}
-    graph.invoke({"messages": [HumanMessage(content="what's the weather")]}, config)
+    _ainvoke(graph, {"messages": [HumanMessage(content="what's the weather")]}, config)
 
     assert captured["question"] == "what's the weather"
 
@@ -212,9 +263,10 @@ def test_finalize_appends_a_reply_message_on_decline():
     graph = build_graph(
         checkpointer=InMemorySaver(),
         planner=_make_fake_planner(decline_reason="out_of_scope"),
+        requests_repo=_FakeRequestsRepo(),
     )
     config = {"configurable": {"thread_id": "t-finalize-decline"}}
-    result = graph.invoke({"question": "irrelevant"}, config)
+    result = _ainvoke(graph, {"question": "irrelevant"}, config)
 
     assert "out_of_scope" in result["messages"][-1].content
 
@@ -228,10 +280,11 @@ def test_finalize_appends_a_reply_message_on_success():
         planner=_make_fake_planner(plan=_plan(with_calc_task=False)),
         calc_agent=_FakeCalcAgent(),
         synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
     )
     config = {"configurable": {"thread_id": "t-finalize-success"}}
-    graph.invoke({"question": "total sales"}, config)
-    result = graph.invoke(Command(resume={"decision": "approve"}), config)
+    _ainvoke(graph, {"question": "total sales"}, config)
+    result = _ainvoke(graph, Command(resume={"decision": "approve"}), config)
 
     assert result["messages"][-1].content == "here is your answer"
 
@@ -243,9 +296,10 @@ def test_approval_gate_pauses_the_run_until_resumed():
         planner=_make_fake_planner(plan=_plan(with_calc_task=False)),
         calc_agent=_FakeCalcAgent(),
         synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
     )
     config = {"configurable": {"thread_id": "t-awaiting-review"}}
-    result = graph.invoke({"question": "total sales"}, config)
+    result = _ainvoke(graph, {"question": "total sales"}, config)
 
     assert "__interrupt__" in result
     assert graph.get_state(config).next == ("approval_gate",)
@@ -260,10 +314,11 @@ def test_reject_resumes_to_withheld_message():
         planner=_make_fake_planner(plan=_plan(with_calc_task=False)),
         calc_agent=_FakeCalcAgent(),
         synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
     )
     config = {"configurable": {"thread_id": "t-rejected"}}
-    graph.invoke({"question": "total sales"}, config)
-    result = graph.invoke(Command(resume={"decision": "reject"}), config)
+    _ainvoke(graph, {"question": "total sales"}, config)
+    result = _ainvoke(graph, Command(resume={"decision": "reject"}), config)
 
     assert result["human_approval"] == "rejected"
     assert "withheld" in result["messages"][-1].content.lower()
@@ -273,9 +328,10 @@ def test_declined_question_never_reaches_the_approval_gate():
     graph = build_graph(
         checkpointer=InMemorySaver(),
         planner=_make_fake_planner(decline_reason="out_of_scope"),
+        requests_repo=_FakeRequestsRepo(),
     )
     config = {"configurable": {"thread_id": "t-decline-no-gate"}}
-    result = graph.invoke({"question": "irrelevant"}, config)
+    result = _ainvoke(graph, {"question": "irrelevant"}, config)
 
     assert "__interrupt__" not in result
     assert graph.get_state(config).next == ()
@@ -290,9 +346,61 @@ def test_calc_agent_receives_the_run_config_for_checkpoint_inheritance():
         planner=_make_fake_planner(plan=_plan(with_calc_task=True)),
         calc_agent=fake_calc_agent,
         synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
     )
 
     config = {"configurable": {"thread_id": "t-config-forward"}}
-    graph.invoke({"question": "total sales, summed"}, config)
+    _ainvoke(graph, {"question": "total sales, summed"}, config)
 
     assert fake_calc_agent.received_config["configurable"]["thread_id"] == "t-config-forward"
+
+
+def test_requests_table_sees_received_then_being_analyzed_then_awaiting_review():
+    fake_synthesizer, _ = _make_fake_synthesizer()
+    repo = _FakeRequestsRepo()
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(plan=_plan(with_calc_task=False)),
+        calc_agent=_FakeCalcAgent(),
+        synthesizer=fake_synthesizer,
+        requests_repo=repo,
+    )
+    config = {"configurable": {"thread_id": "t-requests-happy-path"}}
+    _ainvoke(graph, {"question": "total sales"}, config)
+
+    row = repo.rows["t-requests-happy-path"]
+    assert row["question_text"] == "total sales"
+    assert row["state"] == "AwaitingReview"
+
+    state_sequence = [call[2] for call in repo.calls if call[0] == "update_state"]
+    assert state_sequence[0] == "BeingAnalyzed"
+    assert "AwaitingReview" in state_sequence
+
+
+def test_requests_table_records_decline_with_its_reason():
+    repo = _FakeRequestsRepo()
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(decline_reason="ambiguous_query"),
+        requests_repo=repo,
+    )
+    config = {"configurable": {"thread_id": "t-requests-decline"}}
+    _ainvoke(graph, {"question": "irrelevant"}, config)
+
+    row = repo.rows["t-requests-decline"]
+    assert row["state"] == "Declined"
+    assert row["decline_reason"] == "ambiguous_query"
+
+
+def test_requests_table_never_reaches_awaiting_review_on_decline():
+    repo = _FakeRequestsRepo()
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(decline_reason="out_of_scope"),
+        requests_repo=repo,
+    )
+    config = {"configurable": {"thread_id": "t-requests-decline-no-review"}}
+    _ainvoke(graph, {"question": "irrelevant"}, config)
+
+    states_seen = {call[2] for call in repo.calls if call[0] == "update_state"}
+    assert "AwaitingReview" not in states_seen

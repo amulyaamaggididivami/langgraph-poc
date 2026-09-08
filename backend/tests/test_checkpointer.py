@@ -61,19 +61,28 @@ def test_build_checkpointer_creates_tables_and_persists_a_checkpoint():
     # TEST-ORCHESTRATION-009
     async def run():
         checkpointer = await build_checkpointer(conn_string=_TEST_CONN_STRING)
+        try:
+            config = {"configurable": {"thread_id": "test-checkpointer-persistence", "checkpoint_ns": ""}}
+            checkpoint = {
+                "v": 1,
+                "id": "1",
+                "ts": "2026-09-08T00:00:00+00:00",
+                "channel_values": {},
+                "channel_versions": {},
+                "versions_seen": {},
+            }
+            await checkpointer.aput(config, checkpoint, {"source": "input", "step": -1, "parents": {}}, {})
 
-        config = {"configurable": {"thread_id": "test-checkpointer-persistence", "checkpoint_ns": ""}}
-        checkpoint = {
-            "v": 1,
-            "id": "1",
-            "ts": "2026-09-08T00:00:00+00:00",
-            "channel_values": {},
-            "channel_versions": {},
-            "versions_seen": {},
-        }
-        await checkpointer.aput(config, checkpoint, {"source": "input", "step": -1, "parents": {}}, {})
-
-        return await checkpointer.aget_tuple(config)
+            return await checkpointer.aget_tuple(config)
+        finally:
+            # build_checkpointer() opens its own AsyncConnectionPool per
+            # call — closing it here matters: an unclosed pool's
+            # background worker task is left running inside this call's
+            # asyncio.run() loop, which then hangs when that loop closes
+            # (confirmed directly: SIGINT on a hung suite run showed the
+            # worker stuck in `await q.get()`, then `Event loop is
+            # closed` when it tried to respond to cancellation).
+            await checkpointer.conn.close()
 
     stored = asyncio.run(run())
     assert stored is not None

@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field, model_validator
 from app.constants.planner import DeclineReason, Executor, TaskStatus
 from app.graph.llm import get_llm
 from app.graph.state import OrchestratorState
+from app.graph.timeout import with_timeout
 from app.prompts.planner import SYSTEM_PROMPT
 
 
@@ -60,11 +61,13 @@ def planner_node(state: OrchestratorState, llm: Optional[BaseChatModel] = None) 
     llm = llm or _default_llm()
     structured_llm = llm.with_structured_output(PlannerOutput)
 
-    result: PlannerOutput = structured_llm.invoke(
+    # TASK-ORCHESTRATION-018: bounded to decision-24's 30s iface-llm-provider deadline.
+    result: PlannerOutput = with_timeout(
+        structured_llm.invoke,
         [
             SystemMessage(content=SYSTEM_PROMPT),
             HumanMessage(content=state["question"]),
-        ]
+        ],
     )
 
     if result.plan is not None:

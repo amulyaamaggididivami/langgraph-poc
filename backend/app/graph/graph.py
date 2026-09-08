@@ -28,36 +28,79 @@ TASK-ORCHESTRATION-014's `approval_gate` sits between `synthesizer` and
 `finalize`: it pauses the run (via `interrupt()`) until an external
 caller resumes with an approve/reject decision — see
 `app/graph/nodes/approval_gate.py`. Only the synthesized-response path
-goes through it; a declined question routes straight to `finalize`,
-matching trd.md's state table (no `Declined -> AwaitingReview` edge).
+goes through it; a declined question routes through `record_decline`
+instead, matching trd.md's state table (no `Declined -> AwaitingReview`
+edge).
+
+`extract_question`/`record_decline`/`approval_gate` are also where the
+`requests` table (trd.md §Data Model) gets written — trd.md's state
+table assigns `Received`/`BeingAnalyzed` to "POST /chat"/"Planner
+begins" and `Declined` to "Planner's intent-match fails", but nothing
+actually wrote them until this fix (found by testing: a real run
+reached `AwaitingReview` correctly, yet the `requests` table stayed
+completely empty — TASK-ORCHESTRATION-016's pending-list query had
+nothing real to return). Doing it here, not inside `planner.py` itself,
+keeps that node's own job (the LLM call) free of persistence concerns —
+`extract_question` already runs immediately before the Planner with no
+branching in between, so folding the `Received`→`BeingAnalyzed` pair
+into one node is a faithful, not a shortcut, reading of the state
+table's own transitions.
 """
 
 from typing import Optional
 
 from langchain_core.messages import AIMessage
+from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
-from app.graph.nodes.approval_gate import approval_gate_node
+from app.graph.nodes.approval_gate import make_approval_gate_node
 from app.graph.nodes.calc_agent import build_calc_agent, make_calc_agent_node
 from app.graph.nodes.planner import planner_node
 from app.graph.nodes.query_tool import query_execution_tool_node
 from app.graph.nodes.synthesizer import synthesizer_node
 from app.graph.state import OrchestratorState
+from app.persistence import requests_repo as default_requests_repo
 
 
-def extract_question_node(state: OrchestratorState) -> dict:
-    """Lets this graph be driven either directly (tests, scripts — pass
-    `question` in the initial state) or via chat (ag-ui-langgraph only
-    ever supplies `messages`). If `question` is already set, this is a
-    no-op."""
-    if state.get("question"):
+def make_extract_question_node(repo=default_requests_repo):
+    async def extract_question_node(state: OrchestratorState, config: RunnableConfig) -> dict:
+        """Lets this graph be driven either directly (tests, scripts —
+        pass `question` in the initial state) or via chat
+        (ag-ui-langgraph only ever supplies `messages`). Also where
+        `requests` gets its `Received` row and immediate `BeingAnalyzed`
+        update — trd.md's own two transitions for "a question arrives
+        and the Planner is about to look at it", collapsed into one
+        node since nothing observable happens between them."""
+        thread_id = config["configurable"]["thread_id"]
+
+        if state.get("question"):
+            question = state["question"]
+        else:
+            messages = state.get("messages")
+            if not messages:
+                raise ValueError("build_graph() needs either state['question'] or state['messages']")
+            question = messages[-1].content
+
+        await repo.insert_received(thread_id, question)
+        await repo.update_state(thread_id, "BeingAnalyzed")
+
+        return {} if state.get("question") else {"question": question}
+
+    return extract_question_node
+
+
+def make_record_decline_node(repo=default_requests_repo):
+    async def record_decline_node(state: OrchestratorState, config: RunnableConfig) -> dict:
+        """`BeingAnalyzed -> Declined`: trd.md's side effect for the
+        Planner's intent-match failing. A pass-through node purely for
+        this write — routing already decided `decline_reason` is set."""
+        thread_id = config["configurable"]["thread_id"]
+        await repo.update_state(thread_id, "Declined", decline_reason=state["decline_reason"])
         return {}
-    messages = state.get("messages")
-    if messages:
-        return {"question": messages[-1].content}
-    raise ValueError("build_graph() needs either state['question'] or state['messages']")
+
+    return record_decline_node
 
 
 def finalize_node(state: OrchestratorState) -> dict:
@@ -110,24 +153,30 @@ def build_graph(
     query_tool=None,
     calc_agent=None,
     synthesizer=None,
+    requests_repo=None,
 ) -> CompiledStateGraph:
     """Assembles and compiles the Orchestrator. Every node defaults to the
     real implementation; each can be overridden (tests pass fakes to
-    avoid real LLM/tool calls). `calc_agent`, if given, must be a compiled
-    graph exposing `.invoke(input, config)` like `build_calc_agent()`'s
-    return value."""
+    avoid real LLM/tool calls, or a real Postgres for the
+    `requests`-table integration tests). `calc_agent`, if given, must be
+    a compiled graph exposing `.invoke(input, config)` like
+    `build_calc_agent()`'s return value. `requests_repo`, if given,
+    replaces the module `extract_question`/`record_decline`/
+    `approval_gate` otherwise write to directly."""
     planner = planner or planner_node
     query_tool = query_tool or query_execution_tool_node
     calc_agent = calc_agent or build_calc_agent()
     synthesizer = synthesizer or synthesizer_node
+    repo = requests_repo or default_requests_repo
 
     graph = StateGraph(OrchestratorState)
-    graph.add_node("extract_question", extract_question_node)
+    graph.add_node("extract_question", make_extract_question_node(repo))
     graph.add_node("planner", planner)
     graph.add_node("query_tool", query_tool)
     graph.add_node("calc_agent", make_calc_agent_node(calc_agent))
     graph.add_node("synthesizer", synthesizer)
-    graph.add_node("approval_gate", approval_gate_node)
+    graph.add_node("record_decline", make_record_decline_node(repo))
+    graph.add_node("approval_gate", make_approval_gate_node(repo))
     graph.add_node("finalize", finalize_node)
 
     graph.add_edge(START, "extract_question")
@@ -135,8 +184,9 @@ def build_graph(
     graph.add_conditional_edges(
         "planner",
         _route_after_planner,
-        {"declined": "finalize", "query_tool": "query_tool", "calc_agent": "calc_agent"},
+        {"declined": "record_decline", "query_tool": "query_tool", "calc_agent": "calc_agent"},
     )
+    graph.add_edge("record_decline", "finalize")
     graph.add_conditional_edges(
         "query_tool", _route_after_query_tool, {"calc_agent": "calc_agent", "synthesizer": "synthesizer"}
     )

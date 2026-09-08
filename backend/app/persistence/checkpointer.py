@@ -28,35 +28,16 @@ against `AsyncPostgresSaver.from_conn_string`'s source); it fails
 silently/oddly without them.
 """
 
-import os
-
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 
+from app.persistence.db import resolve_conn_string
 
-def _conn_string() -> str:
-    """`DATABASE_URL` if set (the single-connection-string form trd.md's
-    Deployment & Operations section names); otherwise composed from the
-    decomposed `DB_*` vars actually populated in backend/.env. Raises
-    `KeyError` with a clear message if neither is usable — fails loud,
-    matching `get_llm()`'s philosophy elsewhere in this module."""
-    database_url = os.environ.get("DATABASE_URL")
-    if database_url:
-        return database_url
-
-    try:
-        host = os.environ["DB_HOST"]
-        port = os.environ["DB_PORT"]
-        name = os.environ["DB_NAME"]
-        user = os.environ["DB_USER"]
-        password = os.environ["DB_PASSWORD"]
-    except KeyError as e:
-        raise KeyError(
-            f"{e.args[0]} not set — required to connect to the synergy Postgres "
-            "instance when DATABASE_URL is also unset (see backend/.env.example)"
-        ) from e
-    return f"postgresql://{user}:{password}@{host}:{port}/{name}"
+# Re-exported under its old name — tests/other callers imported this
+# directly before the resolver moved to db.py (shared with
+# requests_repo.py).
+_conn_string = resolve_conn_string
 
 
 async def build_checkpointer(conn_string: str | None = None) -> AsyncPostgresSaver:

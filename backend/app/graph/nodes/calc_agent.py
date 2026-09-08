@@ -32,6 +32,7 @@ from deepagents import create_deep_agent
 
 from app.graph.llm import get_llm
 from app.graph.state import OrchestratorState
+from app.graph.timeout import with_timeout
 from app.prompts.calc_agent import SYSTEM_PROMPT
 from app.tools.calculator import TOOLS
 
@@ -73,7 +74,8 @@ def make_calc_agent_node(calc_agent: CompiledStateGraph):
             f"Raw rows: {state.get('raw_rows')}\n"
             f"Prior calculations: {state.get('calculations')}"
         )
-        result = calc_agent.invoke({"messages": [HumanMessage(content=prompt)]}, config)
+        # TASK-ORCHESTRATION-018: bounded to decision-24's 30s iface-llm-provider deadline.
+        result = with_timeout(calc_agent.invoke, {"messages": [HumanMessage(content=prompt)]}, config)
         answer = result["messages"][-1].content
         task["status"] = "COMPLETED"
 

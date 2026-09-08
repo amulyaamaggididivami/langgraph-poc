@@ -485,6 +485,22 @@
         {
           "date": "2026-09-08",
           "note": "TASK-ORCHESTRATION-014 (Human Approval gate) done. Added approval_gate_node (app/graph/nodes/approval_gate.py) using LangGraph's interrupt() between synthesizer and finalize; only the synthesized-response path goes through it \u2014 a declined question routes straight to finalize with no AwaitingReview pause, matching trd.md's state table (no Declined -> AwaitingReview edge). constraint-checkpoint-freshness holds by construction: the Synthesizer's own step checkpoints synthesized_response one step before the graph ever reaches the interrupt, so a crash mid-pause loses nothing. Verified live against the real /chat endpoint and real Postgres: a question pauses with a CUSTOM AG-UI interrupt event carrying {question, synthesized_response}, no finalize message is emitted yet, and a separate process resuming via Command(resume={'decision': 'approve'}) against the same thread_id completes the run and delivers the correct final message \u2014 confirming real cross-process pause/resume, not just in-memory. finalize_node also extended for the reject path (\"reviewed and withheld\"). test_graph.py: fixed one pre-existing test that assumed synthesizer->finalize directly (now needs an approve resume) and added 3 new tests (pause-until-resumed, reject path, decline never reaches the gate)."
+        },
+        {
+          "date": "2026-09-08",
+          "note": "TASK-ORCHESTRATION-018 (bounded external-call timeout wrapper) done. Added app/graph/timeout.py: with_timeout()/IntegrationTimeoutError, using a single-thread ThreadPoolExecutor + future.result(timeout=...) rather than signal.alarm, since LangGraph's sync nodes run in a worker thread under uvicorn and signal-based timeouts only fire on the main thread. Applied at every iface-business-db/iface-llm-provider call site: query_tool.py's run_query(), and the .invoke() calls in planner.py, synthesizer.py, and calc_agent.py's make_calc_agent_node wrapper (touches Engineer A's Planner/Calc-Agent files too, since decision-24's 30s bound applies to all three LLM calls, not just Synthesizer). Verified live that wrapping calc_agent.invoke() in an extra thread does not break its nested calc_agent:<uuid> checkpoint namespace under real Postgres (TASK-ORCHESTRATION-013's property held after this change too). TEST-ORCHESTRATION-010 marked passed."
+        },
+        {
+          "date": "2026-09-08",
+          "note": "Fixed a real gap found by direct testing: the requests table stayed completely empty through every prior live /chat run in this session (verified by querying it directly before and after a real run that reached AwaitingReview) \u2014 nothing wrote to it, even though TASK-ORCHESTRATION-014 was marked done and its own description promised the AwaitingReview write. Root cause: none of TASK-ORCHESTRATION-009/014/016 had actually implemented the writes trd.md's state table assigns to Received/BeingAnalyzed/Declined/AwaitingReview. Fixed across all three task areas rather than leaving TASK-009's gap for Engineer A: added app/persistence/conn.py (shared conn-string resolver, factored out of checkpointer.py) and app/persistence/requests_repo.py (insert_received/update_state/get_request/get_pending_reviews, its own small connection pool, separate from the checkpointer's). Wired into graph.py: extract_question (now async) writes Received then BeingAnalyzed immediately after, in one node since nothing observable happens between those two transitions; a new record_decline node writes Declined+decline_reason on the decline branch; approval_gate writes AwaitingReview before calling interrupt(), satisfying its own original acceptance criterion. All three DB-touching nodes take an injectable repo (build_graph(requests_repo=...)) so tests use an in-memory fake, not real Postgres. Verified live end-to-end: a real run's row shows question_text, correct final state, and updated_at later than created_at, matching the transitions; EXPLAIN confirms idx_requests_awaiting_review is actually used by the pending-list query (TASK-ORCHESTRATION-016's own acceptance criterion). 17 new/updated tests across test_graph.py, test_requests_repo.py (real-Postgres, gated on reachability like test_checkpointer.py)."
+        },
+        {
+          "date": "2026-09-08",
+          "note": "Follow-up fix to the requests-table work above: found a real connection-pool leak while re-running the full test suite for verification \u2014 every test that builds a real AsyncPostgresSaver or requests_repo pool never closed it, leaving the pool's background worker task running inside that test's short-lived asyncio.run() loop. Across repeated runs this eventually hung a later run's event-loop teardown entirely (diagnosed by sending SIGINT to the stuck process: traceback showed the orphaned worker stuck in `await q.get()`, then 'Event loop is closed' when it tried to respond to cancellation). Fixed by closing pools explicitly: test_checkpointer.py's integration test now closes checkpointer.conn in a finally block; test_requests_repo.py's fixture closes requests_repo._pool on teardown; app/main.py's lifespan now closes both pools on app shutdown too (the same leak applies across dev-server restarts, not just in tests). Verified with 4 consecutive full-suite runs (all passing, Postgres connection count staying flat, not accumulating) and one real server start/graceful-SIGTERM-shutdown cycle."
+        },
+        {
+          "date": "2026-09-08",
+          "note": "TASK-ORCHESTRATION-015 (/review route) done. Added app/api/routes/review.py: POST /review (plain JSON pending list, backed by TASK-ORCHESTRATION-016's query) and POST /review/{thread_id}/decision (SSE, resumes the paused graph). Built on ag_ui_langgraph.LangGraphAgent.run() + ag_ui.encoder.EventEncoder directly rather than add_langgraph_fastapi_endpoint (chat.py's helper), since that helper only supports thread_id inside the POST body, not trd.md's literal /review/{thread_id}/decision path shape \u2014 same event-translation mechanism decision-25 specifies, different route wiring. Added app/schemas/review.py (PendingReview, DecisionRequest, ErrorResponse mirroring trd.md's JSON Schemas). Included a basic already_decided/not_found guard since the route can't behave correctly without it; TASK-ORCHESTRATION-017 owns the dedicated hardening/tests for that path specifically. Verified live end-to-end against the real running server: pending list correctly empty/populated/excludes-resolved; approve resumes through finalize and marks Delivered; reject marks Withheld with the correct message; a second decision on an already-resumed thread returns 409 already_decided; an unknown thread_id returns 404 not_found. 6 new automated tests (test_review_route.py, real Postgres, gated on reachability), seeding a paused thread via a separate build_graph() call with fake nodes so no real LLM call is needed even for the resume path (resuming past approval_gate never re-invokes the earlier nodes). Found and fixed a test-isolation bug along the way: one new test wrongly assumed the shared real requests table starts empty \u2014 fixed to assert exclusion of one specific test-owned thread_id instead, since other test files' own AwaitingReview rows persist across the whole suite run (real Postgres, not a per-test transaction). Verified stable across 3 consecutive full-suite runs, no connection-pool regression. main.py's lifespan now registers both /chat and /review against the same checkpointer instance."
         }
       ]
     },
@@ -628,7 +644,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-011": {
       "parent": "TRD-ORCHESTRATION-003",
@@ -664,7 +680,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-014": {
       "parent": "TRD-ORCHESTRATION-007",
@@ -967,6 +983,34 @@
     },
     "TASK-ORCHESTRATION-014": {
       "parent": [],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-018": {
+      "parent": [
+        "TEST-ORCHESTRATION-010"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-016": {
+      "parent": [
+        "TEST-ORCHESTRATION-012"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-015": {
+      "parent": [
+        "TEST-ORCHESTRATION-012",
+        "TEST-ORCHESTRATION-013"
+      ],
       "stage": "50d",
       "module": "ORCHESTRATION",
       "tier": "tracked",

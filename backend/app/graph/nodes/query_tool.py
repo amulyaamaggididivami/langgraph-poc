@@ -9,12 +9,18 @@ iface-business-db's real schema is TASK-ORCHESTRATION-022/023 (Engineer
 A, not yet built) — until then this dispatches against the fixture
 registry in app/constants/query_tool.py, matched by keyword against the
 assigned Task's description.
+
+`run_query` is bounded to decision-24's 30s deadline
+(TASK-ORCHESTRATION-018) — this is the module's one `iface-business-db`
+call site, so wrapping here covers it regardless of whether the query
+is today's fixture lookup or TASK-022/023's eventual real SQL call.
 """
 
 from typing import Callable, Optional
 
 from app.constants.query_tool import DEFAULT_QUERY_KEY, PREDEFINED_QUERIES
 from app.graph.state import OrchestratorState
+from app.graph.timeout import with_timeout
 
 QueryRunner = Callable[[str], list]
 
@@ -53,7 +59,7 @@ def query_execution_tool_node(state: OrchestratorState, run_query: Optional[Quer
         )
 
     query_key = _match_query_key(task["description"])
-    rows = run_query(query_key)
+    rows = with_timeout(run_query, query_key)
     task["status"] = "COMPLETED"
 
     return {"plan": {**plan, "tasks": tasks}, "raw_rows": rows}

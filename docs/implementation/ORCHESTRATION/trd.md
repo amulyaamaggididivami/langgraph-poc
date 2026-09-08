@@ -351,14 +351,62 @@ creates them automatically if they don't already exist. This project runs
 that setup call but does not author or alter that schema directly.
 
 For `iface-business-db` (decision-30): same Postgres instance
-(`synergy`, localhost), different tables. This project owns the instance
-now, but the sales/order/customer/product table DDL itself is not
-authored in this TRD yet — see Open Questions. Whatever connection this
-module uses to query those tables should be read-only in practice
-(`constraint-01`), even though, unlike a true-external system, the same
-Postgres instance also holds tables this module writes to
-(`checkpoints`, `requests`) — that read/write split is enforced by which
-queries the code issues, not by two different database servers.
+(`synergy`, localhost), different tables. **Contract-hardened
+2026-09-08** (`TASK-ORCHESTRATION-021`) — the assumed
+sales/order/customer/product shape this TRD originally named was never
+built; the real business data already seeded into `synergy` is a single
+clinic-appointments table, `appointments` (27,560 real rows,
+"Synergy Healthcare & Wellness" — a live PTL-provisioned dataset, not
+synthetic, per vision.md decision-09). One table, not four — this POC's
+business domain is appointment scheduling and billing, not retail
+sales; every earlier reference in this TRD to sales/order/customer/product
+is superseded by this section, not still-current elsewhere.
+
+- **Primary key.** `appt_id` (bigint) — already enforced by the seeded
+  table (`appointments_pkey`).
+- **Uniqueness.** `appt_id` alone.
+- **Foreign keys.** None — `appointments` is a single flat table (no
+  separate patient/doctor/clinic tables to reference); a real production
+  schema would likely normalize these, but that's out of scope for this
+  POC's read-only query layer.
+- **Indexes.** Three, one per predefined query below: `idx_appointments_appt_date`
+  (serves `appointment_count_by_month`), `idx_appointments_clinic_name`
+  (serves `revenue_by_clinic`), `idx_appointments_status` (serves
+  `cancellation_rate`) — same one-index-per-real-access-pattern
+  discipline as `idx_requests_awaiting_review`, though at 27.5k rows none
+  is performance-critical yet; documented for contract discipline, not
+  because a sequential scan is currently slow.
+- **Retention.** Undecided — no row is deleted or archived by this
+  design, same as `requests`. Left open, not invented here.
+- **Migration policy.** Unlike `requests`, this table's DDL was not
+  authored via this project's own migration tooling — it was seeded
+  directly into `synergy` before this TRD section existed. This TRD
+  treats its current shape as frozen or additive-only going forward
+  (new nullable columns only); no destructive change is designed here.
+- **Dedupe keys.** Not applicable — this project only reads `appointments`,
+  it does not ingest into it.
+- **Known data quality issue.** `clinic_name` has five clinics, each
+  stored under two inconsistent spellings (`"...Adyar"` vs
+  `"..., Adyar"` — a stray comma, nothing more exotic). The predefined
+  queries normalize this at query time (`replace(clinic_name, ', ', ' ')`),
+  not via a data migration — cheaper and reversible if the real
+  provenance of the inconsistency turns out to matter later.
+
+**Predefined-query set (constraint-02)** — the fixed 3-4 queries
+`comp-query-tool` dispatches (`TASK-ORCHESTRATION-023` writes the actual
+SQL; named here per this task's own acceptance criterion):
+
+1. `appointment_count_by_month` — appointment counts grouped by month.
+2. `overall_revenue` — total and average `paid_amount` across all appointments.
+3. `revenue_by_clinic` — total and average `paid_amount` grouped by (normalized) clinic.
+4. `cancellation_rate` — appointment counts grouped by `status` (`CNF`/`PCANCEL`/`NOSHOW`/`DCANCEL`).
+
+Whatever connection this module uses to query `appointments` should be
+read-only in practice (`constraint-01`), even though, unlike a
+true-external system, the same Postgres instance also holds tables this
+module writes to (`checkpoints`, `requests`) — that read/write split is
+enforced by which queries the code issues, not by two different
+database servers.
 
 `comp-calc-agent`'s internal `deepagents` graph (decision-29) is compiled
 with **no checkpointer of its own** — it must not be given a separate
@@ -668,14 +716,15 @@ POC assumes). Audit trail: the
   for PTL confirmation that an explicit error is preferred over the BRD's
   original silent framing — not a blocker, but worth a conscious yes.
   `[open]`
-- **Business data table schema** — decision-30 makes `iface-business-db`
-  project-owned (DB `synergy`), but the actual sales/order/customer/product
-  table DDL, and which 3-4 predefined queries (`comp-query-tool`,
-  constraint-02) run against it, are not authored in this TRD yet. `[open]`
+- **Business data table schema** — resolved 2026-09-08
+  (`TASK-ORCHESTRATION-021`, see §Persistence Constraints): the real
+  seeded table is `appointments` (clinic scheduling/billing), not the
+  sales/order/customer/product shape originally assumed here — the
+  domain itself was wrong, not just the DDL. `[resolved]`
 
 ## Approval
 
 Approved by: Vara
 Role:        PTL
-Date:        2026-09-07
-Hash:        f8bab003cab4…
+Date:        2026-09-08
+Hash:        7b4cfe770a62…

@@ -24,8 +24,12 @@ contract, so there is no reason it can't carry `messages` directly.
 `extract_question`/`finalize` below are that boundary, as two ordinary
 nodes on this same graph — not a second StateGraph wrapping this one.
 
-TASK-ORCHESTRATION-014 will insert a human-approval node between
-`synthesizer` and `finalize`; this graph goes straight through for now.
+TASK-ORCHESTRATION-014's `approval_gate` sits between `synthesizer` and
+`finalize`: it pauses the run (via `interrupt()`) until an external
+caller resumes with an approve/reject decision — see
+`app/graph/nodes/approval_gate.py`. Only the synthesized-response path
+goes through it; a declined question routes straight to `finalize`,
+matching trd.md's state table (no `Declined -> AwaitingReview` edge).
 """
 
 from typing import Optional
@@ -35,6 +39,7 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from app.graph.nodes.approval_gate import approval_gate_node
 from app.graph.nodes.calc_agent import build_calc_agent, make_calc_agent_node
 from app.graph.nodes.planner import planner_node
 from app.graph.nodes.query_tool import query_execution_tool_node
@@ -57,10 +62,13 @@ def extract_question_node(state: OrchestratorState) -> dict:
 
 def finalize_node(state: OrchestratorState) -> dict:
     """Appends one reply message summarizing however this run ended —
-    declined or synthesized — so a chat-driven caller has something to
-    show, without every other node needing to know `messages` exists."""
+    declined, rejected at review, or delivered — so a chat-driven caller
+    has something to show, without every other node needing to know
+    `messages` exists."""
     if state.get("decline_reason") is not None:
         reply = f"I can't help with that ({state['decline_reason']})."
+    elif state.get("human_approval") == "rejected":
+        reply = "This response was reviewed and withheld."
     else:
         reply = state.get("synthesized_response") or "No response was produced."
     return {"messages": [AIMessage(content=reply)]}
@@ -119,6 +127,7 @@ def build_graph(
     graph.add_node("query_tool", query_tool)
     graph.add_node("calc_agent", make_calc_agent_node(calc_agent))
     graph.add_node("synthesizer", synthesizer)
+    graph.add_node("approval_gate", approval_gate_node)
     graph.add_node("finalize", finalize_node)
 
     graph.add_edge(START, "extract_question")
@@ -132,7 +141,8 @@ def build_graph(
         "query_tool", _route_after_query_tool, {"calc_agent": "calc_agent", "synthesizer": "synthesizer"}
     )
     graph.add_edge("calc_agent", "synthesizer")
-    graph.add_edge("synthesizer", "finalize")
+    graph.add_edge("synthesizer", "approval_gate")
+    graph.add_edge("approval_gate", "finalize")
     graph.add_edge("finalize", END)
 
     return graph.compile(checkpointer=checkpointer)

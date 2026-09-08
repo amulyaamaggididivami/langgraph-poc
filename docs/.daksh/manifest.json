@@ -481,6 +481,10 @@
         {
           "date": "2026-09-08",
           "note": "TASK-ORCHESTRATION-013 (PostgresSaver checkpointing) done. Real bug found and fixed during verification: ag-ui-langgraph's LangGraphAgent drives the compiled graph through its async methods (aget_state, astream) for /chat's SSE endpoint, so the sync PostgresSaver raised NotImplementedError at request time (BaseCheckpointSaver.aget_tuple's default). Switched to AsyncPostgresSaver + AsyncConnectionPool; app/main.py restructured with a FastAPI lifespan handler since building the checkpointer is now async. Verified live against a real local Postgres instance (eb-local-poc): checkpoint tables auto-created by .setup() with no hand-written DDL (decision-23); the Calculation Agent's nested calc_agent:<uuid> checkpoint namespace persists correctly under real Postgres, not just InMemorySaver (TRD-ORCHESTRATION-007); requests/appointments business tables coexist with the checkpoint tables with no name collision (TRD-ORCHESTRATION-008); a second process run found the first run's checkpoints already persisted, confirming genuine cross-process persistence. All three /chat paths (query+synthesize, calculation-only, decline) re-verified live end-to-end after the fix. TEST-ORCHESTRATION-009 marked passed."
+        },
+        {
+          "date": "2026-09-08",
+          "note": "TASK-ORCHESTRATION-014 (Human Approval gate) done. Added approval_gate_node (app/graph/nodes/approval_gate.py) using LangGraph's interrupt() between synthesizer and finalize; only the synthesized-response path goes through it \u2014 a declined question routes straight to finalize with no AwaitingReview pause, matching trd.md's state table (no Declined -> AwaitingReview edge). constraint-checkpoint-freshness holds by construction: the Synthesizer's own step checkpoints synthesized_response one step before the graph ever reaches the interrupt, so a crash mid-pause loses nothing. Verified live against the real /chat endpoint and real Postgres: a question pauses with a CUSTOM AG-UI interrupt event carrying {question, synthesized_response}, no finalize message is emitted yet, and a separate process resuming via Command(resume={'decision': 'approve'}) against the same thread_id completes the run and delivers the correct final message \u2014 confirming real cross-process pause/resume, not just in-memory. finalize_node also extended for the reject path (\"reviewed and withheld\"). test_graph.py: fixed one pre-existing test that assumed synthesizer->finalize directly (now needs an approve resume) and added 3 new tests (pause-until-resumed, reject path, decline never reaches the gate)."
         }
       ]
     },
@@ -956,6 +960,13 @@
       "parent": [
         "TEST-ORCHESTRATION-009"
       ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-014": {
+      "parent": [],
       "stage": "50d",
       "module": "ORCHESTRATION",
       "tier": "tracked",

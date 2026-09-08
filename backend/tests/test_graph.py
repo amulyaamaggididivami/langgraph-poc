@@ -8,6 +8,7 @@ TASK-ORCHESTRATION-013's job, not this one's.
 
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.types import Command
 
 from app.graph.graph import build_graph
 from app.graph.nodes.query_tool import query_execution_tool_node
@@ -219,6 +220,8 @@ def test_finalize_appends_a_reply_message_on_decline():
 
 
 def test_finalize_appends_a_reply_message_on_success():
+    # TASK-ORCHESTRATION-014: the synthesized-response path now pauses at
+    # approval_gate before finalize runs, so this needs an approve resume.
     fake_synthesizer, _ = _make_fake_synthesizer()
     graph = build_graph(
         checkpointer=InMemorySaver(),
@@ -227,9 +230,55 @@ def test_finalize_appends_a_reply_message_on_success():
         synthesizer=fake_synthesizer,
     )
     config = {"configurable": {"thread_id": "t-finalize-success"}}
-    result = graph.invoke({"question": "total sales"}, config)
+    graph.invoke({"question": "total sales"}, config)
+    result = graph.invoke(Command(resume={"decision": "approve"}), config)
 
     assert result["messages"][-1].content == "here is your answer"
+
+
+def test_approval_gate_pauses_the_run_until_resumed():
+    fake_synthesizer, _ = _make_fake_synthesizer()
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(plan=_plan(with_calc_task=False)),
+        calc_agent=_FakeCalcAgent(),
+        synthesizer=fake_synthesizer,
+    )
+    config = {"configurable": {"thread_id": "t-awaiting-review"}}
+    result = graph.invoke({"question": "total sales"}, config)
+
+    assert "__interrupt__" in result
+    assert graph.get_state(config).next == ("approval_gate",)
+    # no reply message exists yet — finalize has not run
+    assert result.get("messages") in (None, [])
+
+
+def test_reject_resumes_to_withheld_message():
+    fake_synthesizer, _ = _make_fake_synthesizer()
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(plan=_plan(with_calc_task=False)),
+        calc_agent=_FakeCalcAgent(),
+        synthesizer=fake_synthesizer,
+    )
+    config = {"configurable": {"thread_id": "t-rejected"}}
+    graph.invoke({"question": "total sales"}, config)
+    result = graph.invoke(Command(resume={"decision": "reject"}), config)
+
+    assert result["human_approval"] == "rejected"
+    assert "withheld" in result["messages"][-1].content.lower()
+
+
+def test_declined_question_never_reaches_the_approval_gate():
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(decline_reason="out_of_scope"),
+    )
+    config = {"configurable": {"thread_id": "t-decline-no-gate"}}
+    result = graph.invoke({"question": "irrelevant"}, config)
+
+    assert "__interrupt__" not in result
+    assert graph.get_state(config).next == ()
 
 
 def test_calc_agent_receives_the_run_config_for_checkpoint_inheritance():

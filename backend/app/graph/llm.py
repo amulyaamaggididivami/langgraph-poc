@@ -8,6 +8,11 @@ underlying Gemini model) — a code-level swap only. trd.md's decision-28
 text still names langchain-google-genai; needs a TRD amendment before
 this is fully contract-clean, flagging rather than silently editing an
 approved, hash-tracked TRD section.
+
+All three agents (Planner, Calculation Agent, Synthesizer) share one
+model — there is no per-node override. `LITELLM_PROVIDER_MODEL_NAME` is
+the single model name every node's LLM call uses (PTL instruction,
+2026-09-08).
 """
 
 import os
@@ -15,21 +20,18 @@ import os
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 
-_DEFAULT_MODEL = "gemini-3.6-flash"
 
+def get_llm(*, temperature: float = 0) -> BaseChatModel:
+    """Builds the one LiteLLM-proxied chat model shared by every node.
 
-def get_llm(*, model_env_var: str, temperature: float = 0) -> BaseChatModel:
-    """Builds a LiteLLM-proxied chat model. `model_env_var` lets each node
-    override the model independently (e.g. `PLANNER_MODEL`) while sharing
-    one proxy endpoint; falls back to `_DEFAULT_MODEL` if unset.
-
-    Raises `KeyError` with a clear message if the proxy isn't configured —
-    fails loud, not with a silent fallback to some other provider.
+    Raises `KeyError` with a clear message if the proxy or model isn't
+    configured — fails loud, not with a silent fallback to some other
+    provider or model.
     """
-    model = os.environ.get(model_env_var, _DEFAULT_MODEL)
     try:
         api_key = os.environ["LITELLM_API_KEY"]
-        base_url = os.environ["LITELLM_BASE_URL"]
+        base_url = os.environ["LITELLM_PROVIDER_BASE_URL"]
+        model = os.environ["LITELLM_PROVIDER_MODEL_NAME"]
     except KeyError as e:
         raise KeyError(
             f"{e.args[0]} not set — required to reach the LiteLLM proxy "

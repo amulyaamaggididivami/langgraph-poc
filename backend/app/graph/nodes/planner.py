@@ -48,7 +48,7 @@ class PlannerOutput(BaseModel):
 
 
 def _default_llm() -> BaseChatModel:
-    return get_llm(model_env_var="PLANNER_MODEL")
+    return get_llm()
 
 
 def planner_node(state: OrchestratorState, llm: Optional[BaseChatModel] = None) -> dict:

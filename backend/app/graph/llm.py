@@ -17,8 +17,15 @@ the single model name every node's LLM call uses (PTL instruction,
 
 import os
 
+from dotenv import load_dotenv
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
+
+# python-dotenv was a project dependency with nothing calling it anywhere
+# — backend/.env's real values never actually reached os.environ. Loaded
+# here, not just in main.py, so anything importing get_llm (tests,
+# one-off scripts, not just the FastAPI app) sees the same env.
+load_dotenv()
 
 
 def get_llm(*, temperature: float = 0) -> BaseChatModel:

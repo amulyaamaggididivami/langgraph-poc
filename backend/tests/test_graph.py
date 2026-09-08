@@ -6,6 +6,7 @@ LLM call happens — real-Postgres checkpoint-sharing verification is
 TASK-ORCHESTRATION-013's job, not this one's.
 """
 
+from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
 from app.graph.graph import build_graph
@@ -188,6 +189,47 @@ def test_plan_with_only_a_calc_task_routes_directly_to_calc_agent():
     assert synth_captured["state"]["calculations"] == {"answer": "5"}
     assert synth_captured["state"].get("raw_rows") is None
     assert result["synthesized_response"] == "here is your answer"
+
+
+def test_chat_style_messages_input_is_translated_into_a_question():
+    # TASK-ORCHESTRATION-009's boundary: ag-ui-langgraph only ever
+    # supplies `messages`, never a bare `question`.
+    captured = {}
+
+    def fake_planner(state):
+        captured["question"] = state["question"]
+        return {"decline_reason": "unmatched_intent"}
+
+    graph = build_graph(checkpointer=InMemorySaver(), planner=fake_planner)
+    config = {"configurable": {"thread_id": "t-messages-in"}}
+    graph.invoke({"messages": [HumanMessage(content="what's the weather")]}, config)
+
+    assert captured["question"] == "what's the weather"
+
+
+def test_finalize_appends_a_reply_message_on_decline():
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(decline_reason="out_of_scope"),
+    )
+    config = {"configurable": {"thread_id": "t-finalize-decline"}}
+    result = graph.invoke({"question": "irrelevant"}, config)
+
+    assert "out_of_scope" in result["messages"][-1].content
+
+
+def test_finalize_appends_a_reply_message_on_success():
+    fake_synthesizer, _ = _make_fake_synthesizer()
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(plan=_plan(with_calc_task=False)),
+        calc_agent=_FakeCalcAgent(),
+        synthesizer=fake_synthesizer,
+    )
+    config = {"configurable": {"thread_id": "t-finalize-success"}}
+    result = graph.invoke({"question": "total sales"}, config)
+
+    assert result["messages"][-1].content == "here is your answer"
 
 
 def test_calc_agent_receives_the_run_config_for_checkpoint_inheritance():

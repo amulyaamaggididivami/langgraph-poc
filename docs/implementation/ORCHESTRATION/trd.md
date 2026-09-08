@@ -21,13 +21,14 @@ currently the PTL, Vara, alone.
 
 This TRD designs: the component/module internal structure, the Postgres
 persistence layer (LangGraph's own checkpoint storage, one project-owned
-tracking table, and — as of `decision-30` — the business data tables,
-all three in one project-owned Postgres instance), the SSE API contracts
-for `/chat` and `/review`, and the deployment substrate this module runs
-on. It does **not** design: screens or copy (no stage 40 selected), the
-business data tables' own column-level schema (project-owned now, but
-not yet authored here — see `iface-business-db`'s Open Questions entry),
-or the LLM provider's API (external, not owned — `iface-llm-provider`).
+tracking table, and — as of `decision-30` — the business data table,
+`appointments`, all three in one project-owned Postgres instance), the
+SSE API contracts for `/chat` and `/review`, and the deployment
+substrate this module runs on. It does **not** design: screens or copy
+(no stage 40 selected), or the LLM provider's API (external, not owned
+— `iface-llm-provider`). The business data table's column-level schema
+*is* now designed here — see §Persistence Constraints
+(`TASK-ORCHESTRATION-021`).
 
 ## Testable Technical Requirements
 
@@ -727,4 +728,4 @@ POC assumes). Audit trail: the
 Approved by: Vara
 Role:        PTL
 Date:        2026-09-08
-Hash:        7b4cfe770a62…
+Hash:        a1a82475062a…

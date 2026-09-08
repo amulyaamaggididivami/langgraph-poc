@@ -326,7 +326,7 @@
       "output": "docs/implementation/ORCHESTRATION/trd.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/implementation/ORCHESTRATION/trd.md": "5d360ac1ecdff92c734e691d244cce3259661df42bbccdb24d8e43f3f08a14d5"
+        "docs/implementation/ORCHESTRATION/trd.md": "1d346148970eee0d96956f0d5f9cdf48b843af587c8f848d2ee7a0ab65631689"
       },
       "approvals": [
         {
@@ -343,6 +343,14 @@
           "date": "2026-09-08",
           "doc_hash": {
             "docs/implementation/ORCHESTRATION/trd.md": "5d360ac1ecdff92c734e691d244cce3259661df42bbccdb24d8e43f3f08a14d5"
+          }
+        },
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-08",
+          "doc_hash": {
+            "docs/implementation/ORCHESTRATION/trd.md": "1d346148970eee0d96956f0d5f9cdf48b843af587c8f848d2ee7a0ab65631689"
           }
         }
       ],

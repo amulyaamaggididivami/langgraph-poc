@@ -15,7 +15,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
 
-from app.graph.nodes.calc_agent import average, build_calc_agent, count_values, percentage_change
+from app.graph.nodes.calc_agent import build_calc_agent
+from app.tools.calculator import average, count_values, percentage_change
 
 
 class _ToolBindingFakeChatModel(FakeMessagesListChatModel):

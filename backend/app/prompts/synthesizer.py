@@ -1,7 +1,3 @@
-"""Constants for the Synthesizer node (TASK-ORCHESTRATION-007) — the
-system prompt, pulled out of synthesizer.py so it's a single edit point.
-"""
-
 SYSTEM_PROMPT = """You are the Synthesizer for a data-analysis assistant. \
 You are given the original business question, the raw rows fetched to \
 answer it, and any calculations performed over those rows. Combine them \

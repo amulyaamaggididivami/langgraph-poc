@@ -7,8 +7,8 @@ cover the node's contract (what goes into the prompt, what comes back
 out) and lock in the schema-leak instruction's presence in the prompt.
 """
 
-from app.constants.synthesizer import SYSTEM_PROMPT
 from app.graph.nodes.synthesizer import synthesizer_node
+from app.prompts.synthesizer import SYSTEM_PROMPT
 
 
 class _FakeResponse:

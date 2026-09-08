@@ -13,9 +13,9 @@ from typing import Optional
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.constants.synthesizer import SYSTEM_PROMPT
 from app.graph.llm import get_llm
 from app.graph.state import OrchestratorState
+from app.prompts.synthesizer import SYSTEM_PROMPT
 
 
 def _default_llm() -> BaseChatModel:

@@ -12,9 +12,10 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field, model_validator
 
-from app.constants.planner import DeclineReason, Executor, SYSTEM_PROMPT, TaskStatus
+from app.constants.planner import DeclineReason, Executor, TaskStatus
 from app.graph.llm import get_llm
 from app.graph.state import OrchestratorState
+from app.prompts.planner import SYSTEM_PROMPT
 
 
 class Task(BaseModel):

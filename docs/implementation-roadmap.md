@@ -173,11 +173,11 @@ changes.
 
 | Step | Status |
 |---|---|
-| step-01a Planner produces valid Plan | not_started |
-| step-01b Orchestrator executes in dependency order | not_started |
-| step-01c Query + Calculation tools wired | not_started |
-| step-01d Synthesizer produces response | not_started |
-| step-01e Chat AG-UI Channel streams live | not_started |
+| step-01a Planner produces valid Plan | done |
+| step-01b Orchestrator executes in dependency order | done |
+| step-01c Query + Calculation tools wired | done |
+| step-01d Synthesizer produces response | done |
+| step-01e Chat AG-UI Channel streams live | done |
 | step-02a Human Approval gate wired | not_started |
 | step-02b Postgres checkpoint store wired | not_started |
 | step-02c Resume from persisted state | not_started |

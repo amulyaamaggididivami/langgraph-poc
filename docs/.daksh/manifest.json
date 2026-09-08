@@ -220,7 +220,7 @@
       "output": "docs/implementation-roadmap.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/implementation-roadmap.md": "de6d1a5bcbcd95cd239f7792952462cc8f3d32c6e38972cfeb9085a03773e382"
+        "docs/implementation-roadmap.md": "24d30e20e510cec449110d375d5e8bff0e9f8f2ed9d0f0f3a01d635b458a3a94"
       },
       "approvals": [
         {
@@ -244,6 +244,10 @@
         {
           "date": "2026-09-07",
           "note": "Synced with architecture's decision-13 revision (WebSocket \u2192 SSE, verified against published package metadata): risk-03 narrowed to the one real residual gap (langchain not yet a dependency), risk-09 marked retired (never materialized \u2014 decision-13 changed before any WebSocket code was written), decision-16 and steps 01e/02d updated to say SSE. Short hash: AUdxbalBs7."
+        },
+        {
+          "date": "2026-09-08",
+          "note": "Progress Table updated: step-01a through step-01e marked done, per TASK-ORCHESTRATION-012's live Milestone-01 integration check. No decision, scope, or build-order content changed \u2014 this doc's own Progress Table section says status changes here don't require re-approval scrutiny, unlike Architecture or build-order edits. doc_hash updated to keep the manifest in sync with the file."
         }
       ]
     },
@@ -469,6 +473,14 @@
         {
           "date": "2026-09-07",
           "reason": "Module ORCHESTRATION registered upon Roadmap (30b) approval, per that stage's own rule."
+        },
+        {
+          "date": "2026-09-08",
+          "note": "TASK-ORCHESTRATION-001 through -012 (Week-1 core loop: Planner, Query Tool, Calculation Agent, Synthesizer, StateGraph wiring, Chat Route, ChatForm, requests table) are done, jointly built by Engineer A and Engineer B. TASK-ORCHESTRATION-012 (Milestone-01 integration check) ran live against the real LiteLLM-proxied Gemini model and the real /chat SSE endpoint (MemorySaver checkpointer, pending TASK-ORCHESTRATION-013's real PostgresSaver): verified three paths end-to-end \u2014 query+synthesize ('total sales last month' -> correct dollar figures from fixture rows), calculation-only with no query task at all ('what is 234 plus 789?' -> correct sum via the deepagents Calculation Agent, confirming the depends_on-based routing fix), and decline ('weather in Paris' -> unmatched_intent). All three produced valid ag-ui-protocol SSE streams with no errors. Verified via a direct get_state_history() call that every graph superstep produces its own checkpoint (TEST-ORCHESTRATION-017, decision-27's trace-completeness claim). TEST-ORCHESTRATION-001/002/004/005/006/007/008/011/014/017 marked passed. milestone-01's definition_of_done is met; implementation-roadmap.md's Progress Table updated for step-01a through step-01e."
+        },
+        {
+          "date": "2026-09-08",
+          "note": "TASK-ORCHESTRATION-013 (PostgresSaver checkpointing) done. Real bug found and fixed during verification: ag-ui-langgraph's LangGraphAgent drives the compiled graph through its async methods (aget_state, astream) for /chat's SSE endpoint, so the sync PostgresSaver raised NotImplementedError at request time (BaseCheckpointSaver.aget_tuple's default). Switched to AsyncPostgresSaver + AsyncConnectionPool; app/main.py restructured with a FastAPI lifespan handler since building the checkpointer is now async. Verified live against a real local Postgres instance (eb-local-poc): checkpoint tables auto-created by .setup() with no hand-written DDL (decision-23); the Calculation Agent's nested calc_agent:<uuid> checkpoint namespace persists correctly under real Postgres, not just InMemorySaver (TRD-ORCHESTRATION-007); requests/appointments business tables coexist with the checkpoint tables with no name collision (TRD-ORCHESTRATION-008); a second process run found the first run's checkpoints already persisted, confirming genuine cross-process persistence. All three /chat paths (query+synthesize, calculation-only, decline) re-verified live end-to-end after the fix. TEST-ORCHESTRATION-009 marked passed."
         }
       ]
     },
@@ -506,7 +518,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-002": {
       "parent": [
@@ -520,7 +532,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-003": {
       "parent": "TRD-ORCHESTRATION-004",
@@ -542,7 +554,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-005": {
       "parent": "invariant-task-status-closed",
@@ -553,7 +565,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-006": {
       "parent": "SY-ORCHESTRATION-006",
@@ -564,7 +576,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-007": {
       "parent": "FR-008",
@@ -575,7 +587,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-008": {
       "parent": "constraint-01",
@@ -587,7 +599,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-009": {
       "parent": "TRD-ORCHESTRATION-001",
@@ -598,7 +610,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-010": {
       "parent": [
@@ -624,7 +636,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-012": {
       "parent": "TRD-ORCHESTRATION-005",
@@ -660,7 +672,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-015": {
       "parent": "TRD-ORCHESTRATION-008",
@@ -697,7 +709,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-018": {
       "parent": [
@@ -820,6 +832,134 @@
       "module": "ORCHESTRATION",
       "tier": "tracked",
       "status": "not_started"
+    },
+    "TASK-ORCHESTRATION-001": {
+      "parent": [
+        "TEST-ORCHESTRATION-011"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-002": {
+      "parent": [],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-003": {
+      "parent": [
+        "TEST-ORCHESTRATION-001",
+        "TEST-ORCHESTRATION-002",
+        "TEST-ORCHESTRATION-005",
+        "TEST-ORCHESTRATION-023"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-004": {
+      "parent": [
+        "TEST-ORCHESTRATION-008"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-005": {
+      "parent": [
+        "TEST-ORCHESTRATION-014"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-006": {
+      "parent": [
+        "TEST-ORCHESTRATION-004",
+        "TEST-ORCHESTRATION-014"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-007": {
+      "parent": [
+        "TEST-ORCHESTRATION-006"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-008": {
+      "parent": [
+        "TEST-ORCHESTRATION-007"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-009": {
+      "parent": [
+        "TEST-ORCHESTRATION-011"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-010": {
+      "parent": [
+        "TEST-ORCHESTRATION-027"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-011": {
+      "parent": [
+        "TEST-ORCHESTRATION-003"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-012": {
+      "parent": [
+        "TEST-ORCHESTRATION-001",
+        "TEST-ORCHESTRATION-002",
+        "TEST-ORCHESTRATION-004",
+        "TEST-ORCHESTRATION-005",
+        "TEST-ORCHESTRATION-006",
+        "TEST-ORCHESTRATION-007",
+        "TEST-ORCHESTRATION-008",
+        "TEST-ORCHESTRATION-011",
+        "TEST-ORCHESTRATION-014",
+        "TEST-ORCHESTRATION-017"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-013": {
+      "parent": [
+        "TEST-ORCHESTRATION-009"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
     }
   },
   "change_records": {},

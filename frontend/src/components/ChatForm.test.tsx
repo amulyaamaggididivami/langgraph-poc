@@ -22,6 +22,10 @@ function makeFakeAgent() {
     addMessage(m) {
       messages.push(m)
     },
+    setMessages(m) {
+      messages.length = 0
+      messages.push(...m)
+    },
     async runAgent(_params, subscriber) {
       onMessagesChanged = subscriber?.onMessagesChanged as typeof onMessagesChanged
       return { result: undefined, newMessages: [] }

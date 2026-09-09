@@ -24,7 +24,15 @@ function App() {
           onResumed={(threadId, resumedMessages) => {
             // Only the thread Chat currently has open should update —
             // a decision on any other pending thread stays in the queue.
-            if (threadId === agent.threadId) setMessages(resumedMessages)
+            if (threadId !== agent.threadId) return
+            // Review resolves out-of-band from `agent` (a raw fetch, not
+            // agent.runAgent()), so agent.messages never learns about it
+            // on its own. Without this, the next question's
+            // agent.addMessage() builds on a copy of history still
+            // missing whatever Review just delivered, and that stale
+            // copy overwrites the display the moment it's sent.
+            agent.setMessages(resumedMessages)
+            setMessages(resumedMessages)
           }}
         />
       </div>

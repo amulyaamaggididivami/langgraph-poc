@@ -20,6 +20,16 @@ question already sits in state, was an unnecessary indirection. Two
 earlier designs — the Planner picking a closed `query_key` enum, then
 the Planner copying one of 4 exact question strings verbatim, then the
 Planner writing its own free-text `Task.question` — are all superseded.
+
+The Planner sees only the current turn's `state["question"]`, not
+`state["messages"]`/conversation history — tried passing the full
+history in for cross-turn follow-up resolution ("what about 2024" after
+a prior "revenue by clinic" question), then reverted: a bare follow-up
+still couldn't be usefully acted on downstream (`query_tool.py` matches
+deterministic keyword overlap with no LLM of its own, so it declines on
+a bare follow-up regardless of whether the Planner understood it), so
+the added complexity wasn't earning its keep. A follow-up question is
+currently expected to be self-contained, or to decline.
 """
 
 import logging
@@ -80,7 +90,7 @@ def planner_node(state: OrchestratorState, llm: Optional[BaseChatModel] = None) 
     llm = llm or _default_llm()
     structured_llm = llm.with_structured_output(PlannerOutput)
 
-    # TASK-ORCHESTRATION-018: bounded to decision-24's 30s iface-llm-provider deadline.
+    # TASK-ORCHESTRATION-018: bounded to decision-24's 50s iface-llm-provider deadline.
     result: PlannerOutput = with_timeout(
         structured_llm.invoke,
         [

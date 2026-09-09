@@ -40,15 +40,22 @@ async def _get_pool() -> AsyncConnectionPool:
 
 
 async def insert_received(thread_id: str, question_text: str) -> None:
-    """`— -> Received`: a fresh row for a newly-submitted question.
-    `ON CONFLICT DO NOTHING` is defensive (e.g. a client retrying the
-    same POST /chat at the HTTP layer), not an expected path — thread_id
-    is a freshly-generated UUID per chat session."""
+    """`— -> Received`, or a return to `Received` for a thread that
+    already has a row: `thread_id` is one whole chat conversation, not
+    one question (see graph.py's module docstring), so a second real
+    turn on the same thread is expected here, not just an HTTP-layer
+    retry of the same POST. `ON CONFLICT DO UPDATE` overwrites
+    `question_text`/`state`/`decline_reason` with this new cycle's
+    values — otherwise the `requests` table would keep showing turn 1's
+    question and terminal state forever, even while a genuinely new
+    turn is in flight."""
     pool = await _get_pool()
     async with pool.connection() as conn:
         await conn.execute(
             "INSERT INTO requests (thread_id, question_text) VALUES (%s, %s) "
-            "ON CONFLICT (thread_id) DO NOTHING",
+            "ON CONFLICT (thread_id) DO UPDATE SET "
+            "question_text = EXCLUDED.question_text, state = 'Received', "
+            "decline_reason = NULL, updated_at = now()",
             (thread_id, question_text),
         )
 

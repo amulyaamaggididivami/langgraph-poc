@@ -74,7 +74,7 @@ def make_calc_agent_node(calc_agent: CompiledStateGraph):
             f"Raw rows: {state.get('raw_rows')}\n"
             f"Prior calculations: {state.get('calculations')}"
         )
-        # TASK-ORCHESTRATION-018: bounded to decision-24's 30s iface-llm-provider deadline.
+        # TASK-ORCHESTRATION-018: bounded to decision-24's 50s iface-llm-provider deadline.
         result = with_timeout(calc_agent.invoke, {"messages": [HumanMessage(content=prompt)]}, config)
         answer = result["messages"][-1].content
         task["status"] = "COMPLETED"

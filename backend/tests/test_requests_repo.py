@@ -106,11 +106,17 @@ async def test_get_pending_reviews_returns_only_awaiting_review_rows():
 
 
 @pytest.mark.anyio
-async def test_insert_received_is_idempotent_for_the_same_thread_id():
+async def test_insert_received_upserts_a_new_cycle_onto_the_same_thread_id():
+    # A thread_id is one whole chat conversation, not one question — a
+    # second real turn on the same thread must overwrite the row with
+    # this new cycle's question/state, not silently keep turn 1's.
     thread_id = str(uuid.uuid4())
 
     await requests_repo.insert_received(thread_id, "first text")
-    await requests_repo.insert_received(thread_id, "second text — should be ignored")
+    await requests_repo.update_state(thread_id, "Declined", decline_reason="unmatched_intent")
+    await requests_repo.insert_received(thread_id, "second text")
 
     row = await requests_repo.get_request(thread_id)
-    assert row["question_text"] == "first text"
+    assert row["question_text"] == "second text"
+    assert row["state"] == "Received"
+    assert row["decline_reason"] is None

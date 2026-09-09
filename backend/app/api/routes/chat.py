@@ -23,9 +23,13 @@ doc). TASK-ORCHESTRATION-009's own acceptance criterion "request body
 validates against trd.md's JSON Schema" cannot be literally true given
 this decision; documenting that plainly rather than papering over it.
 
-No human-approval gate exists yet (TASK-ORCHESTRATION-014) — this route
-streams straight from Synthesizer to the client. That's an accurate
-reflection of where the graph actually ends today, not a shortcut.
+TASK-ORCHESTRATION-014's `approval_gate` sits between Synthesizer and
+`finalize` (see graph.py), so a run through this route pauses there —
+the SSE stream ends with an interrupted run, not a delivered answer;
+`/review`'s decision route (app/api/routes/review.py) is what resumes
+it. This route hands `build_graph()`'s compiled graph to
+`LangGraphAgent` unmodified, so whatever that graph does is exactly
+what streams here — nothing route-specific to keep in sync.
 """
 
 from typing import Optional

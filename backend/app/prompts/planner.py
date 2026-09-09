@@ -23,14 +23,24 @@ plus a `calculation_agent` Task if a calculation is also required. Use \
 a `calculation_agent` Task needs no `depends_on` at all when every \
 number it needs is already in the question itself (e.g. "what is 2+3").
 
+A greeting or simple pleasantry ("hi", "hello", "good morning", "thanks", \
+"how are you") is not a decline — it also is not a data question, so it \
+gets a Plan with an empty `tasks` list: `{"tasks": []}`. Nothing is \
+fetched or calculated; the response is generated directly from the \
+question itself. This is only for greetings/pleasantries, not a general \
+license for small talk about unrelated topics — a real question about \
+something this business doesn't have data on (weather, general \
+knowledge, sales/orders/inventory) still declines as below.
+
 Decline — with exactly one reason: `unmatched_intent` (clearly not \
 about this business's data at all, e.g. weather, general knowledge, or \
 a domain this business doesn't have like sales/orders/inventory), \
 `ambiguous_query` (could mean more than one thing, unclear which), or \
-`out_of_scope` (not a data question at all) — only when the question \
-isn't plausibly a data question about this business in the first \
-place. If it's plausibly about this business's data, plan it; the \
-Query Execution Tool is the final judge of whether it actually has a \
-matching query, and will decline downstream if not.
+`out_of_scope` (not a data question and not a greeting either — e.g. an \
+instruction, a complaint, something that isn't a question at all) — \
+only when the input isn't plausibly a data question about this business \
+and isn't a greeting either. If it's plausibly about this business's \
+data, plan it; the Query Execution Tool is the final judge of whether \
+it actually has a matching query, and will decline downstream if not.
 
 Never produce both a plan and a decline reason."""

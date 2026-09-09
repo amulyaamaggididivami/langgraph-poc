@@ -36,6 +36,9 @@ function makeFakeReviewApi(initial: PendingReview[]) {
     setNextFailure(err: Error) {
       nextShouldFail = err
     },
+    setPending(rows: PendingReview[]) {
+      pending = rows
+    },
   }
 }
 
@@ -135,5 +138,29 @@ describe('ReviewPage', () => {
     await user.click(screen.getByRole('button', { name: /approve/i }))
 
     await waitFor(() => expect(onResumed).toHaveBeenCalledWith(SAMPLE.thread_id, snapshotMessages))
+  })
+
+  it('a second cycle on the same thread_id shows as pending again, not stuck on the first decision', async () => {
+    // Regression test: a thread_id is one whole conversation, not one
+    // question — a follow-up question on an already-decided thread
+    // reappears in the pending list under the *same* thread_id. It must
+    // render with fresh Approve/Reject buttons, not the previous
+    // decision's "Delivered"/"Withheld" label.
+    const user = userEvent.setup()
+    const fake = makeFakeReviewApi([SAMPLE])
+
+    render(<ReviewPage reviewApi={fake.api} />)
+    await screen.findByText(SAMPLE.question_text)
+    await user.click(screen.getByRole('button', { name: /approve/i }))
+    expect(await screen.findByText('Delivered')).toBeInTheDocument()
+
+    const secondCycle: PendingReview = { ...SAMPLE, question_text: 'what about 2024' }
+    fake.setPending([secondCycle])
+    await user.click(screen.getByRole('button', { name: /^refresh$/i }))
+
+    await screen.findByText('what about 2024')
+    expect(screen.queryByText('Delivered')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /reject/i })).toBeInTheDocument()
   })
 })

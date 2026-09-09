@@ -178,13 +178,13 @@ changes.
 | step-01c Query + Calculation tools wired | done |
 | step-01d Synthesizer produces response | done |
 | step-01e Chat AG-UI Channel streams live | done |
-| step-02a Human Approval gate wired | not_started |
-| step-02b Postgres checkpoint store wired | not_started |
-| step-02c Resume from persisted state | not_started |
-| step-02d Review AG-UI Channel + /review route | not_started |
+| step-02a Human Approval gate wired | done |
+| step-02b Postgres checkpoint store wired | done |
+| step-02c Resume from persisted state | done |
+| step-02d Review AG-UI Channel + /review route | done |
 | step-03a Full reference example end-to-end | not_started |
 | step-03b Orchestration trace inspectable | not_started |
-| step-03c Real Postgres credentials swapped in | not_started |
+| step-03c Real Postgres credentials swapped in | done |
 
 ## Open Questions
 

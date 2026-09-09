@@ -33,7 +33,20 @@ export function ReviewPage({ reviewApi = defaultReviewApi, onResumed }: ReviewPa
     setLoading(true)
     setLoadError(null)
     try {
-      setItems(await reviewApi.listPending())
+      const pending = await reviewApi.listPending()
+      setItems(pending)
+      // thread_id is reused across a whole conversation (one thread_id =
+      // one chat, many question/review cycles on it) — the backend only
+      // ever lists a thread here while it's genuinely AwaitingReview, so
+      // a thread_id reappearing is always a new cycle, never the one we
+      // already decided. Drop any stale done/error state left over from
+      // an earlier cycle on this thread so it renders as pending again,
+      // instead of permanently showing that earlier decision.
+      setItemState((prev) => {
+        const next = { ...prev }
+        for (const item of pending) delete next[item.thread_id]
+        return next
+      })
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : 'Could not load the review queue.')
     } finally {

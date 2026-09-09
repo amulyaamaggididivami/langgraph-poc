@@ -51,6 +51,26 @@ keeps that node's own job (the LLM call) free of persistence concerns —
 branching in between, so folding the `Received`→`BeingAnalyzed` pair
 into one node is a faithful, not a shortcut, reading of the state
 table's own transitions.
+
+`extract_question` also resets every per-cycle field (`plan`, `raw_rows`,
+`calculations`, `synthesized_response`, `decline_reason`,
+`human_approval`) and always re-derives `question` from the latest
+human message when chat-driven — found necessary by testing a real
+multi-turn conversation: a `thread_id` is one whole chat conversation,
+not one question. `messages` is genuine conversation history and stays
+untouched across turns (the Planner reads it for context — see
+planner.py); everything else here is per-turn scratch state. Without
+this reset, LangGraph's own checkpointing (state persists across every
+turn on the same thread, which is the point of checkpointing) meant
+turn 2's Planner call ran correctly but the *routing* after it still
+saw turn 1's leftover `decline_reason` and misrouted — a second, real
+question silently reusing the first turn's answer. `extract_question`
+is the right place for this because it's the one node LangGraph runs at
+the start of every new cycle and never re-runs mid-resume (resuming an
+`interrupt()` continues from wherever it paused, never back through
+`extract_question`), so "this node just ran" reliably means "a genuinely
+new question just arrived on this thread", not "we're continuing an
+existing one".
 """
 
 from typing import Optional
@@ -78,21 +98,42 @@ def make_extract_question_node(repo=default_requests_repo):
         `requests` gets its `Received` row and immediate `BeingAnalyzed`
         update — trd.md's own two transitions for "a question arrives
         and the Planner is about to look at it", collapsed into one
-        node since nothing observable happens between them."""
-        thread_id = config["configurable"]["thread_id"]
+        node since nothing observable happens between them.
 
-        if state.get("question"):
+        Chat-driven runs always re-derive `question` from the latest
+        human message rather than trusting a possibly-stale
+        `state["question"]` left over from an earlier turn on this same
+        thread — see module docstring. The direct/test invocation path
+        (no `messages` at all) keeps using `state["question"]` verbatim,
+        since there's no conversation to re-derive it from."""
+        thread_id = config["configurable"]["thread_id"]
+        messages = state.get("messages")
+
+        if messages:
+            question = None
+            for message in reversed(messages):
+                if getattr(message, "type", None) == "human":
+                    question = message.content
+                    break
+            if question is None:
+                raise ValueError("build_graph() got state['messages'] with no human message in it")
+        elif state.get("question"):
             question = state["question"]
         else:
-            messages = state.get("messages")
-            if not messages:
-                raise ValueError("build_graph() needs either state['question'] or state['messages']")
-            question = messages[-1].content
+            raise ValueError("build_graph() needs either state['question'] or state['messages']")
 
         await repo.insert_received(thread_id, question)
         await repo.update_state(thread_id, "BeingAnalyzed")
 
-        return {} if state.get("question") else {"question": question}
+        return {
+            "question": question,
+            "plan": None,
+            "raw_rows": None,
+            "calculations": None,
+            "synthesized_response": None,
+            "decline_reason": None,
+            "human_approval": None,
+        }
 
     return extract_question_node
 
@@ -141,7 +182,17 @@ def _next_runnable_task(tasks: list[dict]) -> Optional[dict]:
 def _route_after_planner(state: OrchestratorState) -> str:
     if state.get("decline_reason") is not None:
         return "declined"
-    task = _next_runnable_task(state["plan"]["tasks"])
+    tasks = state["plan"]["tasks"]
+    if not tasks:
+        # A greeting/pleasantry ("hi") is a Plan with zero Tasks, not a
+        # decline — nothing to fetch or calculate, so it goes straight
+        # to the Synthesizer, which generates a reply from the question
+        # alone. Still goes through the same approval_gate/review path
+        # as a real answer, per the PTL's direction: a greeting is
+        # reviewed and delivered like anything else, not special-cased
+        # around the human-approval step.
+        return "synthesizer"
+    task = _next_runnable_task(tasks)
     if task is None:
         raise ValueError("planner produced a plan with no runnable task")
     return "query_tool" if task["executor"] == "query_execution_tool" else "calc_agent"
@@ -195,13 +246,18 @@ def build_graph(
     graph.add_conditional_edges(
         "planner",
         _route_after_planner,
-        {"declined": "record_decline", "query_tool": "query_tool", "calc_agent": "calc_agent"},
+        {
+            "declined": "record_decline",
+            "query_tool": "query_tool",
+            "calc_agent": "calc_agent",
+            "synthesizer": "synthesizer",
+        },
     )
     graph.add_edge("record_decline", "finalize")
     graph.add_conditional_edges(
         "query_tool",
         _route_after_query_tool,
-        {"declined": "finalize", "calc_agent": "calc_agent", "synthesizer": "synthesizer"},
+        {"declined": "record_decline", "calc_agent": "calc_agent", "synthesizer": "synthesizer"},
     )
     graph.add_edge("calc_agent", "synthesizer")
     graph.add_edge("synthesizer", "approval_gate")

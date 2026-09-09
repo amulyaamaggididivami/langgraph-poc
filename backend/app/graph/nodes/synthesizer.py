@@ -38,7 +38,7 @@ def synthesizer_node(state: OrchestratorState, llm: Optional[BaseChatModel] = No
     `synthesized_response` to one natural-language answer."""
     llm = llm or _default_llm()
 
-    # TASK-ORCHESTRATION-018: bounded to decision-24's 30s iface-llm-provider deadline.
+    # TASK-ORCHESTRATION-018: bounded to decision-24's 50s iface-llm-provider deadline.
     response = with_timeout(
         llm.invoke,
         [

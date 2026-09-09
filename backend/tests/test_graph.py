@@ -281,6 +281,40 @@ def test_query_tool_decline_skips_calc_agent_and_synthesizer():
     assert "unmatched_intent" in result["messages"][-1].content
 
 
+def test_greeting_gets_an_empty_task_plan_and_routes_straight_to_synthesizer():
+    # A Plan with zero Tasks (e.g. "hi") is not a decline — it skips
+    # query_tool/calc_agent entirely and still goes through
+    # approval_gate/review like a real answer (PTL direction:
+    # greetings aren't special-cased around human approval).
+    fake_calc_agent = _FakeCalcAgent()
+    query_tool_calls = []
+
+    def tracking_query_tool(state):
+        query_tool_calls.append(state)
+        return query_execution_tool_node(state)
+
+    fake_synthesizer, synth_captured = _make_fake_synthesizer()
+
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(plan={"tasks": []}),
+        query_tool=tracking_query_tool,
+        calc_agent=fake_calc_agent,
+        synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
+    )
+
+    config = {"configurable": {"thread_id": "t-greeting"}}
+    result = _ainvoke(graph, {"question": "hi"}, config)
+
+    assert query_tool_calls == []
+    assert fake_calc_agent.call_count == 0
+    assert synth_captured["state"]["question"] == "hi"
+    assert synth_captured["state"].get("raw_rows") is None
+    assert synth_captured["state"].get("calculations") is None
+    assert "__interrupt__" in result  # paused at approval_gate, same as a real answer
+
+
 def test_chat_style_messages_input_is_translated_into_a_question():
     # TASK-ORCHESTRATION-009's boundary: ag-ui-langgraph only ever
     # supplies `messages`, never a bare `question`.
@@ -428,6 +462,63 @@ def test_requests_table_records_decline_with_its_reason():
     row = repo.rows["t-requests-decline"]
     assert row["state"] == "Declined"
     assert row["decline_reason"] == "ambiguous_query"
+
+
+def test_second_question_on_the_same_thread_gets_its_own_answer_not_a_stale_one():
+    # Regression test for the real multi-turn chat bug: a thread_id is
+    # one whole conversation, not one question (see graph.py's module
+    # docstring). Turn 2 must re-derive `question` from the latest human
+    # message — not keep replaying turn 1's — and must not see turn 1's
+    # leftover per-cycle fields (decline_reason, raw_rows, calculations,
+    # synthesized_response, human_approval) before its own nodes run.
+    captured_on_entry = []
+
+    def fake_planner(state):
+        captured_on_entry.append(dict(state))
+        return {"plan": _plan(with_calc_task=False)}
+
+    def fake_query_tool(state):
+        task = dict(state["plan"]["tasks"][0])
+        task["status"] = "COMPLETED"
+        return {
+            "plan": {**state["plan"], "tasks": [task]},
+            "raw_rows": [{"question": state["question"]}],
+        }
+
+    def fake_synthesizer(state):
+        return {"synthesized_response": f"Answering: {state['question']}"}
+
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=fake_planner,
+        query_tool=fake_query_tool,
+        calc_agent=_FakeCalcAgent(),
+        synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
+    )
+    config = {"configurable": {"thread_id": "t-multi-turn"}}
+
+    _ainvoke(graph, {"messages": [HumanMessage(content="total sales")]}, config)
+    turn1 = _ainvoke(graph, Command(resume={"decision": "approve"}), config)
+    assert turn1["messages"][-1].content == "Answering: total sales"
+
+    _ainvoke(graph, {"messages": [HumanMessage(content="total sales by clinic")]}, config)
+    turn2 = _ainvoke(graph, Command(resume={"decision": "approve"}), config)
+
+    # turn 2 answered its own question, not a replay of turn 1's
+    assert turn2["messages"][-1].content == "Answering: total sales by clinic"
+    assert turn2["messages"][-1].content != turn1["messages"][-1].content
+
+    # state entering turn 2's planner had already been reset — not
+    # leaking turn 1's decline_reason/raw_rows/calculations/etc.
+    assert len(captured_on_entry) == 2
+    turn2_entry_state = captured_on_entry[1]
+    assert turn2_entry_state["question"] == "total sales by clinic"
+    assert turn2_entry_state.get("decline_reason") is None
+    assert turn2_entry_state.get("raw_rows") is None
+    assert turn2_entry_state.get("calculations") is None
+    assert turn2_entry_state.get("synthesized_response") is None
+    assert turn2_entry_state.get("human_approval") is None
 
 
 def test_requests_table_never_reaches_awaiting_review_on_decline():

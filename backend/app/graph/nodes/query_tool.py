@@ -7,7 +7,7 @@ returns raw rows. Read-only by construction: this module contains no
 write statement, so constraint-01 holds regardless of which query runs
 — a plain read-only connection, no ORM, no query builder.
 
-`run_query` is bounded to decision-24's 30s deadline
+`run_query` is bounded to decision-24's 50s deadline
 (TASK-ORCHESTRATION-018) — this is the module's one `iface-business-db`
 call site.
 

@@ -35,7 +35,7 @@ PREDEFINED_QUERIES: list[dict[str, str]] = [
         """,
     },
     {
-        "question": "What is the revenue by clinic?",
+        "question": "Which clinic generated the most revenue?",
         "sql": """
             SELECT replace(clinic_name, ', ', ' ') AS clinic_name,
                    sum(paid_amount) AS total_paid,

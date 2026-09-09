@@ -21,23 +21,15 @@ matched a Planner-written `Task.question` instead; dropped as an
 unnecessary indirection once the actual original question was already
 sitting right there in state).
 
-Matching (`_match_sql`) derives its signal from each entry's own
-`question` string at match time — there is no separate hand-authored
-keyword/stem list anywhere. For each of the 4 entries, its significant
-words (stopwords stripped) are compared against the human's question,
-word-for-word, using a shared-prefix check so morphological variants
-match ("cancelled"/"cancellation" share a 6-character prefix; plain
-`==` would miss that). The entry with the most matching words wins;
-ties break on list order in PREDEFINED_QUERIES (earlier entries win —
-this is why cancellation is listed before the more generic
-appointment-count-by-month entry: a question can easily mention "number
-of appointments" while actually asking about cancellations). No match
-at all (best score 0) means no predefined query exists for it, and this
-node declines rather than guessing.
+Matching (`_match_sql`) is a plain, exact (`==`) comparison against each
+entry's own `question` string — no normalization, no word-overlap/fuzzy
+scoring. The frontend only ever sends one of the 4 predefined questions
+verbatim (button-driven, not free typing — see ChatForm), so nothing
+short of an exact match should be trusted. No match means no predefined
+query exists for it, and this node declines rather than guessing.
 """
 
 import logging
-import re
 from typing import Callable, Optional
 
 import psycopg
@@ -52,48 +44,12 @@ logger = logging.getLogger(__name__)
 
 QueryRunner = Callable[[str], list]
 
-_STOPWORDS = {
-    "a", "an", "the", "is", "are", "was", "were", "what", "how", "many",
-    "there", "by", "of", "and", "to", "in", "for", "that", "this", "from",
-    "all", "on", "as", "it", "its", "with",
-}
-
-
-def _significant_words(text: str) -> list[str]:
-    words = re.findall(r"[a-z0-9]+", text.lower())
-    return [w for w in words if w not in _STOPWORDS]
-
-
-def _words_match(a: str, b: str) -> bool:
-    # Shared-prefix check, not exact equality — lets morphological
-    # variants match (e.g. "cancelled"/"cancellation" share "cancel";
-    # "appointment"/"appointments" share the whole shorter word).
-    threshold = min(len(a), len(b), 5)
-    common = 0
-    for x, y in zip(a, b):
-        if x != y:
-            break
-        common += 1
-    return common >= threshold
-
 
 def _match_sql(question: str) -> Optional[str]:
-    task_words = _significant_words(question)
-    if not task_words:
-        return None
-
-    best_score = 0
-    best_sql = None
     for entry in PREDEFINED_QUERIES:
-        entry_words = _significant_words(entry["question"])
-        score = sum(
-            1 for ew in entry_words if any(_words_match(ew, tw) for tw in task_words)
-        )
-        if score > best_score:
-            best_score = score
-            best_sql = entry["sql"]
-
-    return best_sql if best_score > 0 else None
+        if entry["question"] == question:
+            return entry["sql"]
+    return None
 
 
 def _default_runner(sql: str) -> list:

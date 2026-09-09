@@ -39,7 +39,7 @@ def test_dispatches_when_the_original_question_matches_a_predefined_query():
         calls.append(sql)
         return [{"fake": True}]
 
-    state = {"question": "what is the total revenue this quarter", "plan": _pending_query_task()}
+    state = {"question": "What is the total revenue?", "plan": _pending_query_task()}
     update = query_execution_tool_node(state, run_query=fake_runner)
 
     assert len(calls) == 1
@@ -54,7 +54,7 @@ def test_marks_the_dispatched_task_completed_without_touching_others():
             {"id": "t2", "description": "sum it", "executor": "calculation_agent", "depends_on": ["t1"], "status": "PENDING"},
         ]
     }
-    state = {"question": "what is the total revenue", "plan": plan}
+    state = {"question": "What is the total revenue?", "plan": plan}
 
     update = query_execution_tool_node(state, run_query=lambda sql: [])
 
@@ -76,22 +76,34 @@ def test_declines_when_the_original_question_matches_no_predefined_query():
     assert update["plan"]["tasks"][0]["status"] == "FAILED"
 
 
-def test_cancellation_beats_the_generic_appointment_overlap():
-    # Priority tie-break: this question scores equally against the
-    # month-breakdown entry ("appointments" overlaps) and the
-    # cancellation entry ("cancelled" shares "cancel" with
-    # "cancellation") — cancellation must win the tie since it's listed
-    # first in PREDEFINED_QUERIES.
+def test_declines_when_casing_or_punctuation_differs_from_the_predefined_text():
+    # Matching is exact — no normalization. Only the button-driven
+    # verbatim text is trusted; anything else declines.
+    calls = []
+    state = {
+        "question": "what is the cancellation rate",  # missing "?", different case
+        "plan": _pending_query_task(),
+    }
+
+    update = query_execution_tool_node(state, run_query=lambda sql: calls.append(sql) or [])
+
+    assert calls == []
+    assert update["decline_reason"] == "unmatched_intent"
+
+
+def test_declines_a_paraphrase_that_is_not_one_of_the_four_predefined_questions():
+    # Only the 4 predefined questions match now — a reworded question
+    # that would previously have scored on word overlap must decline.
     calls = []
     state = {
         "question": "what is the total number of appointments and the total number of cancelled appointments",
         "plan": _pending_query_task(),
     }
 
-    query_execution_tool_node(state, run_query=lambda sql: calls.append(sql) or [])
+    update = query_execution_tool_node(state, run_query=lambda sql: calls.append(sql) or [])
 
-    assert len(calls) == 1
-    assert "status" in calls[0]  # ran the cancellation-rate SQL
+    assert calls == []
+    assert update["decline_reason"] == "unmatched_intent"
 
 
 def test_raises_when_no_pending_query_task_exists():
@@ -113,7 +125,7 @@ def test_custom_query_runner_is_used_when_provided():
         calls.append(sql)
         return [{"fake": True}]
 
-    state = {"question": "what is the revenue by clinic breakdown", "plan": _pending_query_task()}
+    state = {"question": "Which clinic generated the most revenue?", "plan": _pending_query_task()}
     update = query_execution_tool_node(state, run_query=fake_runner)
 
     assert len(calls) == 1
@@ -139,20 +151,20 @@ class TestAgainstRealAppointmentsData:
     `appointments` table (27,560 rows) before writing this test."""
 
     def test_appointment_count_by_month_returns_ten_months(self):
-        sql = _match_sql("how many appointments per month")
+        sql = _match_sql("How many appointments were there by month?")
         rows = _default_runner(sql)
         assert len(rows) == 10
         assert sum(r["appointment_count"] for r in rows) == 27560
 
     def test_overall_revenue_matches_known_total(self):
-        sql = _match_sql("what is the total revenue")
+        sql = _match_sql("What is the total revenue?")
         rows = _default_runner(sql)
         assert len(rows) == 1
         assert rows[0]["appointment_count"] == 27560
         assert float(rows[0]["total_paid"]) == 18283106.0
 
     def test_revenue_by_clinic_normalizes_duplicate_clinic_names(self):
-        sql = _match_sql("revenue by clinic")
+        sql = _match_sql("Which clinic generated the most revenue?")
         rows = _default_runner(sql)
         clinic_names = {r["clinic_name"] for r in rows}
         # 5 real clinics, not 10 — proves the ', ' normalization collapsed
@@ -161,7 +173,7 @@ class TestAgainstRealAppointmentsData:
         assert all(", " not in name for name in clinic_names)
 
     def test_cancellation_rate_covers_all_four_statuses(self):
-        sql = _match_sql("cancellation rate")
+        sql = _match_sql("What is the cancellation rate?")
         rows = _default_runner(sql)
         statuses = {r["status"] for r in rows}
         assert statuses == {"CNF", "PCANCEL", "NOSHOW", "DCANCEL"}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Message } from '@ag-ui/client'
 
 import type { ChatAgent } from '../api/chatApi'
+import { PREDEFINED_QUESTIONS } from '../constants'
 
 interface ChatFormProps {
   agent: ChatAgent
@@ -43,6 +44,13 @@ export function ChatForm({ agent, messages, onMessagesChange }: ChatFormProps) {
           </li>
         ))}
       </ul>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+        {PREDEFINED_QUESTIONS.map((q) => (
+          <button key={q} type="button" onClick={() => setMessage(q)}>
+            {q}
+          </button>
+        ))}
+      </div>
       <form onSubmit={handleSubmit}>
         <input
           value={message}

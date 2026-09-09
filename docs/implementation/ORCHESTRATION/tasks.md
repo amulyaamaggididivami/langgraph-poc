@@ -884,10 +884,10 @@ there rather than treating it as a silent handoff.
 - **`decline_reason` category set** — carried over from `trd.md`, still
   open: `TASK-ORCHESTRATION-003`'s implementation may reveal a different
   natural set than the three currently named. `[open]`
-- **Representative question set for `constraint-02`** — `TASK-ORCHESTRATION-023`
-  needs the PTL to confirm which 3-4 business questions the predefined
-  queries must answer; not chosen yet (roadmap decision-10 deferred this
-  exact choice to implementation, i.e., now). `[open]`
+- **Representative question set for `constraint-02`** — resolved
+  2026-09-08 against the real `appointments` data: appointment count by
+  month, overall revenue, revenue by clinic, cancellation rate (see
+  `trd.md` §Persistence Constraints). `[resolved]`
 - **Real Postgres/Gemini credentials** — `TASK-ORCHESTRATION-024` blocks
   on the PTL supplying them (roadmap risk-01); dummy values remain
   sufficient through Weeks 1-2. `[open]`

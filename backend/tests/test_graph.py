@@ -65,7 +65,7 @@ def _plan(with_calc_task: bool):
     tasks = [
         {
             "id": "t1",
-            "description": "total sales",
+            "description": "fetch revenue data",
             "executor": "query_execution_tool",
             "depends_on": [],
             "status": "PENDING",
@@ -241,6 +241,44 @@ def test_plan_with_only_a_calc_task_routes_directly_to_calc_agent():
     assert synth_captured["state"]["calculations"] == {"answer": "5"}
     assert synth_captured["state"].get("raw_rows") is None
     assert result["synthesized_response"] == "here is your answer"
+
+
+def test_query_tool_decline_skips_calc_agent_and_synthesizer():
+    # 2026-09-08: the Planner is now permissive about domain fit — the
+    # Query Tool is the real gate, and can decline after a Plan already
+    # exists. Uses the REAL query_execution_tool_node (not a fake) since
+    # this is exactly the matching behavior under test — it matches
+    # state["question"] below, not anything on the task itself.
+    plan = {
+        "tasks": [
+            {
+                "id": "t1",
+                "description": "fetch inventory data",
+                "executor": "query_execution_tool",
+                "depends_on": [],
+                "status": "PENDING",
+            }
+        ]
+    }
+    fake_calc_agent = _FakeCalcAgent()
+    fake_synthesizer, synth_captured = _make_fake_synthesizer()
+
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        planner=_make_fake_planner(plan=plan),
+        calc_agent=fake_calc_agent,
+        synthesizer=fake_synthesizer,
+        requests_repo=_FakeRequestsRepo(),
+    )
+
+    config = {"configurable": {"thread_id": "t-query-tool-decline"}}
+    result = _ainvoke(graph, {"question": "what's our inventory situation"}, config)
+
+    assert result["decline_reason"] == "unmatched_intent"
+    assert result["plan"]["tasks"][0]["status"] == "FAILED"
+    assert fake_calc_agent.call_count == 0
+    assert "state" not in synth_captured
+    assert "unmatched_intent" in result["messages"][-1].content
 
 
 def test_chat_style_messages_input_is_translated_into_a_question():

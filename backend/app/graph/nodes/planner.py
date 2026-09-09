@@ -4,8 +4,25 @@ comp-planner (trd.md §Architecture Overview) — a structured-output LLM
 call producing either a Plan or a Decline, never both
 (invariant-decline-no-plan). The Planner only plans; it never executes
 a tool itself (BRD decision-01).
+
+Deliberate division of labor (2026-09-08 PTL direction, final form):
+the Planner carries only domain knowledge (this is a clinic
+appointments business) and tool knowledge (query_execution_tool vs
+calculation_agent) — it does NOT know the specific fixed questions the
+Query Execution Tool actually has. Matching a question to one of the
+real predefined queries (or declining if nothing fits) is entirely the
+Query Execution Tool's job (app/graph/nodes/query_tool.py), which
+matches against `state["question"]` — the literal original text the
+human asked, not a Planner-authored restatement of it. `Task` has no
+`question` field of its own for this reason: routing a match through
+something the Planner wrote in its own words, when the actual original
+question already sits in state, was an unnecessary indirection. Two
+earlier designs — the Planner picking a closed `query_key` enum, then
+the Planner copying one of 4 exact question strings verbatim, then the
+Planner writing its own free-text `Task.question` — are all superseded.
 """
 
+import logging
 from typing import Optional
 
 from langchain_core.language_models import BaseChatModel
@@ -17,6 +34,8 @@ from app.graph.llm import get_llm
 from app.graph.state import OrchestratorState
 from app.graph.timeout import with_timeout
 from app.prompts.planner import SYSTEM_PROMPT
+
+logger = logging.getLogger(__name__)
 
 
 class Task(BaseModel):
@@ -71,5 +90,18 @@ def planner_node(state: OrchestratorState, llm: Optional[BaseChatModel] = None) 
     )
 
     if result.plan is not None:
+        tasks = result.plan.tasks
+        logger.info(
+            "planner: question=%r -> plan with %d task(s): %s",
+            state["question"],
+            len(tasks),
+            [(t.id, t.executor, t.description) for t in tasks],
+        )
         return {"plan": result.plan.model_dump()}
+
+    logger.info(
+        "planner: question=%r -> declined (%s)",
+        state["question"],
+        result.decline_reason,
+    )
     return {"decline_reason": result.decline_reason}

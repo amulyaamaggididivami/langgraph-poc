@@ -1,44 +1,58 @@
-"""Fixture predefined-query registry for TASK-ORCHESTRATION-004.
+"""Predefined-query registry for TASK-ORCHESTRATION-004/023.
 
-comp-query-tool dispatches one of a small, fixed set of predefined
-queries (BRD constraint-02 — no generated SQL, ever). The real
-business-data schema and query SQL are TASK-ORCHESTRATION-022/023
-(Engineer A, not yet built) — until then, each registry entry returns
-fixture rows shaped like the eventual real result, so the rest of the
-pipeline (Calculation Agent, Synthesizer) can be built and tested
-against a stable contract. Swapping a fixture's `rows` for a real SQL
-call is the only change TASK-022/023 needs to make here.
+comp-query-tool dispatches one of 4 fixed SQL queries against the real
+`appointments` table (BRD constraint-02 — no generated SQL, ever).
+trd.md §Persistence Constraints names this exact set
+(TASK-ORCHESTRATION-021's amendment).
+
+Just two fields per entry — `question` and `sql` — nothing else. The
+Planner (app/prompts/planner.py) carries only domain + tool knowledge;
+it writes `Task.question` in its own free-text words, never trying to
+reproduce one of these verbatim. Matching that free text to one of
+these 4 entries is query_tool.py's job, and it derives its matching
+signal from each entry's own `question` string at match time — no
+separate hand-authored keyword/stem list lives here.
 """
 
-PREDEFINED_QUERIES = {
-    "total_sales": {
-        "keywords": ("total sales", "total revenue", "overall sales"),
-        "rows": [
-            {"region": "North", "amount": 125000.0},
-            {"region": "South", "amount": 98000.0},
-            {"region": "East", "amount": 143500.0},
-            {"region": "West", "amount": 110250.0},
-        ],
+PREDEFINED_QUERIES: list[dict[str, str]] = [
+    {
+        "question": "What is the cancellation rate?",
+        "sql": """
+            SELECT status, count(*) AS appointment_count
+            FROM appointments
+            GROUP BY 1
+            ORDER BY 2 DESC
+        """,
     },
-    "sales_by_region": {
-        "keywords": ("by region", "per region", "region breakdown"),
-        "rows": [
-            {"region": "North", "amount": 125000.0},
-            {"region": "South", "amount": 98000.0},
-        ],
+    {
+        "question": "How many appointments were there by month?",
+        "sql": """
+            SELECT date_trunc('month', appt_date)::date AS month,
+                   count(*) AS appointment_count
+            FROM appointments
+            GROUP BY 1
+            ORDER BY 1
+        """,
     },
-    "monthly_revenue": {
-        "keywords": ("monthly", "last quarter", "this quarter", "revenue trend"),
-        "rows": [
-            {"month": "2026-06", "amount": 82000.0},
-            {"month": "2026-07", "amount": 91000.0},
-            {"month": "2026-08", "amount": 88500.0},
-        ],
+    {
+        "question": "What is the revenue by clinic?",
+        "sql": """
+            SELECT replace(clinic_name, ', ', ' ') AS clinic_name,
+                   sum(paid_amount) AS total_paid,
+                   avg(paid_amount) AS average_paid,
+                   count(*) AS appointment_count
+            FROM appointments
+            GROUP BY 1
+            ORDER BY 1
+        """,
     },
-}
-
-# Used when a Task's description doesn't match any registered keyword —
-# the Planner already decided this Task belongs to the query tool, so a
-# fixture default is a reasonable stand-in until real intent-to-query
-# mapping exists (TASK-ORCHESTRATION-023).
-DEFAULT_QUERY_KEY = "total_sales"
+    {
+        "question": "What is the total revenue?",
+        "sql": """
+            SELECT sum(paid_amount) AS total_paid,
+                   avg(paid_amount) AS average_paid,
+                   count(*) AS appointment_count
+            FROM appointments
+        """,
+    },
+]

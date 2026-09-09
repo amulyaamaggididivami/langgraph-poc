@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,6 +15,11 @@ from app.constants.config import (
 )
 from app.persistence import requests_repo
 from app.persistence.checkpointer import build_checkpointer
+
+# Without this, app.graph.nodes.query_tool's logger.info(...) calls are
+# silently dropped — the root logger's default level is WARNING, and
+# nothing else in this app configures logging at all.
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
 
 @asynccontextmanager

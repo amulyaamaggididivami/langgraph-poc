@@ -33,7 +33,7 @@ def test_planner_produces_valid_plan_for_matching_question():
     fixed = PlannerOutput(
         plan=Plan(
             tasks=[
-                Task(id="t1", description="fetch rows", executor="query_execution_tool"),
+                Task(id="t1", description="fetch total revenue", executor="query_execution_tool"),
                 Task(
                     id="t2",
                     description="sum rows",
@@ -43,7 +43,7 @@ def test_planner_produces_valid_plan_for_matching_question():
             ]
         )
     )
-    update = planner_node({"question": "total sales last quarter"}, llm=_FakeStructuredLLM(fixed))
+    update = planner_node({"question": "total revenue last quarter"}, llm=_FakeStructuredLLM(fixed))
 
     assert "plan" in update
     assert "decline_reason" not in update

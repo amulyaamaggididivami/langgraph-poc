@@ -3,15 +3,21 @@
 comp-orchestrator (trd.md §Architecture Overview) — not a node itself,
 this *is* the StateGraph: the edges and conditional routing connecting
 Planner, Query Tool, Calculation Agent, and Synthesizer, enforcing
-dependency order (BRD FR-005/FR-008/FR-009). Planner decides
-Plan-or-Decline; a declined question ends immediately. Otherwise,
-which of Query Tool / Calculation Agent runs first is decided by each
-Task's own `depends_on` (`_next_runnable_task`), not a fixed node
-order: a Plan can be query-then-calculate (the common case), query-only
-(no calculation needed), or calculation-only with no query task at all
-(e.g. "what is 2+3" — the numbers are already in the question, nothing
-to fetch). Synthesizer always runs last regardless of which of the
-other two ran, per BRD decision-03.
+dependency order (BRD FR-005/FR-008/FR-009). A decline can happen in
+two places, not just one (2026-09-08 PTL direction): the Planner
+declines a question that isn't plausibly about this business's data at
+all, ending immediately; the Query Tool can *also* decline, after a
+Plan already exists, if the assigned Task's description matches none of
+the predefined queries it actually has (`_route_after_query_tool`) —
+the Planner is deliberately permissive about domain fit, so this second
+gate is where "plausible but not actually backed by a real query" gets
+caught. Otherwise, which of Query Tool / Calculation Agent runs first is
+decided by each Task's own `depends_on` (`_next_runnable_task`), not a
+fixed node order: a Plan can be query-then-calculate (the common case),
+query-only (no calculation needed), or calculation-only with no query
+task at all (e.g. "what is 2+3" — the numbers are already in the
+question, nothing to fetch). Synthesizer always runs last regardless of
+which of the other two ran, per BRD decision-03.
 
 The Calculation Agent's node function (`make_calc_agent_node`) lives in
 `app/graph/nodes/calc_agent.py` alongside `build_calc_agent()` — see
@@ -142,6 +148,11 @@ def _route_after_planner(state: OrchestratorState) -> str:
 
 
 def _route_after_query_tool(state: OrchestratorState) -> str:
+    # The Query Tool can itself decline (no predefined query matched the
+    # assigned Task) — same "declined" destination the Planner uses, a
+    # decline discovered mid-execution rather than only up front.
+    if state.get("decline_reason") is not None:
+        return "declined"
     task = _next_runnable_task(state["plan"]["tasks"])
     return "calc_agent" if task is not None and task["executor"] == "calculation_agent" else "synthesizer"
 
@@ -188,7 +199,9 @@ def build_graph(
     )
     graph.add_edge("record_decline", "finalize")
     graph.add_conditional_edges(
-        "query_tool", _route_after_query_tool, {"calc_agent": "calc_agent", "synthesizer": "synthesizer"}
+        "query_tool",
+        _route_after_query_tool,
+        {"declined": "finalize", "calc_agent": "calc_agent", "synthesizer": "synthesizer"},
     )
     graph.add_edge("calc_agent", "synthesizer")
     graph.add_edge("synthesizer", "approval_gate")

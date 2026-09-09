@@ -2,9 +2,10 @@
 
 trd.md §Deployment & Operations names `DATABASE_URL` as the primary
 configuration surface, with the decomposed `DB_*` vars as the form
-actually populated in backend/.env. Used by both the checkpointer
-(app/persistence/checkpointer.py) and the requests-table repo
-(app/persistence/requests_repo.py) — two logically separate connections
+actually populated in backend/.env. Used by the checkpointer
+(app/persistence/checkpointer.py), the requests-table repo
+(app/persistence/requests_repo.py), and the Query Tool
+(app/graph/nodes/query_tool.py) — three logically separate connections
 into the same `synergy` Postgres instance (decision-30), not a shared
 pool, just the same resolution logic so it's a single edit point.
 """
@@ -13,8 +14,9 @@ import os
 
 
 def resolve_conn_string() -> str:
-    """Raises `KeyError` with a clear message if neither `DATABASE_URL`
-    nor the full `DB_*` set is usable — fails loud, matching
+    """`DATABASE_URL` if set; otherwise composed from the decomposed
+    `DB_*` vars actually populated in backend/.env. Raises `KeyError`
+    with a clear message if neither is usable — fails loud, matching
     `get_llm()`'s philosophy elsewhere in this module."""
     database_url = os.environ.get("DATABASE_URL")
     if database_url:

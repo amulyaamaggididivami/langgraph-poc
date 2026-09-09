@@ -220,7 +220,7 @@
       "output": "docs/implementation-roadmap.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/implementation-roadmap.md": "24d30e20e510cec449110d375d5e8bff0e9f8f2ed9d0f0f3a01d635b458a3a94"
+        "docs/implementation-roadmap.md": "687f3285434758432e759a7668fd38040976e82810e421bf8027ab1770beac92"
       },
       "approvals": [
         {
@@ -248,6 +248,14 @@
         {
           "date": "2026-09-08",
           "note": "Progress Table updated: step-01a through step-01e marked done, per TASK-ORCHESTRATION-012's live Milestone-01 integration check. No decision, scope, or build-order content changed \u2014 this doc's own Progress Table section says status changes here don't require re-approval scrutiny, unlike Architecture or build-order edits. doc_hash updated to keep the manifest in sync with the file."
+        },
+        {
+          "date": "2026-09-09",
+          "note": "Progress Table updated: step-02a through step-02d marked done, per TASK-ORCHESTRATION-020's Milestone-02 integration check. No decision, scope, or build-order content changed. doc_hash updated to keep the manifest in sync."
+        },
+        {
+          "date": "2026-09-09",
+          "note": "Progress Table updated: step-03c marked done \u2014 PTL confirmed real Postgres/LiteLLM credentials are final, per TASK-ORCHESTRATION-024."
         }
       ]
     },
@@ -326,7 +334,7 @@
       "output": "docs/implementation/ORCHESTRATION/trd.md",
       "locked_by": null,
       "doc_hash": {
-        "docs/implementation/ORCHESTRATION/trd.md": "1d346148970eee0d96956f0d5f9cdf48b843af587c8f848d2ee7a0ab65631689"
+        "docs/implementation/ORCHESTRATION/trd.md": "a12f2a832c757dc583b0b5a62e81fdc88e5e064aa0ece5af06e761508056aff7"
       },
       "approvals": [
         {
@@ -351,6 +359,14 @@
           "date": "2026-09-08",
           "doc_hash": {
             "docs/implementation/ORCHESTRATION/trd.md": "1d346148970eee0d96956f0d5f9cdf48b843af587c8f848d2ee7a0ab65631689"
+          }
+        },
+        {
+          "by": "Vara",
+          "role": "PTL",
+          "date": "2026-09-09",
+          "doc_hash": {
+            "docs/implementation/ORCHESTRATION/trd.md": "a12f2a832c757dc583b0b5a62e81fdc88e5e064aa0ece5af06e761508056aff7"
           }
         }
       ],
@@ -517,6 +533,26 @@
         {
           "date": "2026-09-08",
           "note": "TASK-ORCHESTRATION-015 (/review route) done. Added app/api/routes/review.py: POST /review (plain JSON pending list, backed by TASK-ORCHESTRATION-016's query) and POST /review/{thread_id}/decision (SSE, resumes the paused graph). Built on ag_ui_langgraph.LangGraphAgent.run() + ag_ui.encoder.EventEncoder directly rather than add_langgraph_fastapi_endpoint (chat.py's helper), since that helper only supports thread_id inside the POST body, not trd.md's literal /review/{thread_id}/decision path shape \u2014 same event-translation mechanism decision-25 specifies, different route wiring. Added app/schemas/review.py (PendingReview, DecisionRequest, ErrorResponse mirroring trd.md's JSON Schemas). Included a basic already_decided/not_found guard since the route can't behave correctly without it; TASK-ORCHESTRATION-017 owns the dedicated hardening/tests for that path specifically. Verified live end-to-end against the real running server: pending list correctly empty/populated/excludes-resolved; approve resumes through finalize and marks Delivered; reject marks Withheld with the correct message; a second decision on an already-resumed thread returns 409 already_decided; an unknown thread_id returns 404 not_found. 6 new automated tests (test_review_route.py, real Postgres, gated on reachability), seeding a paused thread via a separate build_graph() call with fake nodes so no real LLM call is needed even for the resume path (resuming past approval_gate never re-invokes the earlier nodes). Found and fixed a test-isolation bug along the way: one new test wrongly assumed the shared real requests table starts empty \u2014 fixed to assert exclusion of one specific test-owned thread_id instead, since other test files' own AwaitingReview rows persist across the whole suite run (real Postgres, not a per-test transaction). Verified stable across 3 consecutive full-suite runs, no connection-pool regression. main.py's lifespan now registers both /chat and /review against the same checkpointer instance."
+        },
+        {
+          "date": "2026-09-09",
+          "note": "TASK-ORCHESTRATION-017 (already_decided error handling) done. Found and fixed a real gap: POST /review's list_pending() had no exception handling at all \u2014 a DB failure fell through to FastAPI's own default {\"detail\": ...} 500 body, not this project's shared ErrorResponse schema (TEST-ORCHESTRATION-016's actual requirement: every error response across /chat, /review, /review/{thread_id}/decision validates against the same schema). Wrapped both review.py handlers' pre-streaming logic in try/except, mapping unexpected exceptions to a shared internal_error response. Documented the one honest limit: an error inside decide()'s SSE generator, after streaming has already started, cannot retroactively become a JSON error body \u2014 an SSE transport constraint, not something to work around, matching /chat's own already-documented deviation. Added 4 new tests: a second decision proven to leave the requests row byte-for-byte unchanged (not just checking the HTTP status), the DB-failure path on /review now returning the shared schema, and a cross-endpoint test validating already_decided/not_found/internal_error all construct the same ErrorResponse Pydantic model without error. Verified live against the real server. TEST-ORCHESTRATION-013 and -016 marked passed."
+        },
+        {
+          "date": "2026-09-09",
+          "note": "TASK-ORCHESTRATION-019 (idempotent resume verification) done. Added tests/test_idempotent_resume.py: TEST-ORCHESTRATION-025 (the real query_execution_tool_node, against the real appointments table, proven invoked exactly once across an interrupt+resume cycle spanning two fully independent graph objects sharing no Python state) and TEST-ORCHESTRATION-024 (the resumed response and requests.question_text both trace back to the exact original question text, unaltered). TEST-ORCHESTRATION-019's own literal scenario (kill the backend process, restart it, approve) was demonstrated live with a real OS process kill rather than encoded as a routine pytest test \u2014 subprocess-managed integration tests trade rigor for a real risk of flaking the suite (port races, orphaned processes). Live evidence: submitted a real question through a real server process (PID 85764), reached AwaitingReview (6 checkpoints recorded), kill -9'd that process, started a genuinely fresh process (PID 85937, no shared memory), and approved through it \u2014 only approval_gate and finalize ran (2 new checkpoints, 8 total), delivering the correct real answer ($18,283,106.00 total revenue, matching the known real data value). No re-execution of extract_question/planner/query_tool, proven at the persisted checkpoint-history level, not just by observing which nodes streamed. All three Test IDs marked passed."
+        },
+        {
+          "date": "2026-09-09",
+          "note": "TASK-ORCHESTRATION-020 (Milestone-02 integration check) done. Found and fixed a real regression while writing the check: query_tool.py's own decline path (added by a concurrent change giving it 'does a predefined query answer this' authority) routed straight to finalize, bypassing record_decline entirely \u2014 the requests table got stuck at BeingAnalyzed forever for any question the Planner accepted but no predefined query matched. Fixed graph.py's query_tool conditional edge (declined -> record_decline, matching the Planner's own decline branch); verified live end-to-end. Also found two test-design bugs while building tests/test_milestone_02.py, both fixed: (1) an EXPLAIN-plan assertion that failed against the shared table's small incidental row count \u2014 Postgres correctly prefers a seq scan there; fixed by wrapping a 2000-row decoy population in a transaction that's rolled back before the connection returns to the pool, so nothing is ever committed to the shared table (chosen over seeding real rows, which pollutes the table other tooling reads); (2) a UUID/str type mismatch comparing raw psycopg rows (uuid.UUID) against a Python str \u2014 the real review.py route already converts with str() correctly, this was purely a new test's own bug. Added 5 new tests closing the remaining Week-2 Test IDs: TEST-012 (partial index proven used under realistic volume), TEST-018 (reject-then-retry is also already_decided, not just approve-then-retry), TEST-020 (real end-to-end decline for a plausible-but-unmatched business question, real Planner LLM call), TEST-021 (two concurrent requests, one forced to fail, proven isolated \u2014 the failing one's row stays at BeingAnalyzed, the healthy one reaches AwaitingReview unaffected), TEST-022 (a genuinely-waiting thread and TASK-019's already-demonstrated post-restart thread are both correctly reported as resumable via standard get_state() introspection). TEST-003 was already covered by test_requests_repo.py, just not yet marked. Milestone-02's definition_of_done is met: a paused workflow resumes from checkpointed Postgres state on Approve, and on Reject terminates with no retry, both exercised via the real Review AG-UI Channel. Verified stable across 3 consecutive full-suite runs (78 tests, connection count flat)."
+        },
+        {
+          "date": "2026-09-09",
+          "note": "TASK-ORCHESTRATION-024 (real Postgres/LLM credential swap) confirmed done by the PTL: backend/.env's DB_* values (eb-local-poc) and LITELLM_API_KEY/LITELLM_PROVIDER_BASE_URL/LITELLM_PROVIDER_MODEL_NAME (the real LiteLLM proxy, per decision-28's LiteLLM amendment) are the final values, not temporary dev placeholders \u2014 matches this task's own acceptance criterion (zero code change, config only). No GOOGLE_API_KEY exists per se since the LLM path was superseded by the LiteLLM proxy before this task ran; the equivalent real-credential bar is met by the LITELLM_* vars instead."
+        },
+        {
+          "date": "2026-09-09",
+          "note": "Bookkeeping catch-up: TASK-ORCHESTRATION-021/022/023 (Engineer A's business-data chain) were already genuinely complete in code and docs, just never marked done in the manifest. Verified directly: trd.md's 'Business data table schema' open question is marked [resolved] (2026-09-08) naming the real appointments table (clinic scheduling/billing \u2014 the domain itself changed from the originally-assumed sales/order/customer/product shape, not just the DDL); the appointments table holds 27,560 real rows; query_tool.py dispatches 4 real predefined SQL queries against it (cancellation rate, appointments by month, revenue by clinic, total revenue); and \\dt confirms 6 distinct tables (appointments, requests, and 4 langgraph-checkpoint-postgres tables) with no name collision (TEST-ORCHESTRATION-015)."
         }
       ]
     },
@@ -579,7 +615,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-004": {
       "parent": "TRD-ORCHESTRATION-007",
@@ -684,7 +720,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-013": {
       "parent": "TRD-ORCHESTRATION-006",
@@ -718,7 +754,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-016": {
       "parent": "TRD-ORCHESTRATION-010",
@@ -730,7 +766,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-017": {
       "parent": [
@@ -760,7 +796,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-019": {
       "parent": [
@@ -775,7 +811,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-020": {
       "parent": [
@@ -790,7 +826,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-021": {
       "parent": "SY-ORCHESTRATION-005",
@@ -801,7 +837,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-022": {
       "parent": "SY-ORCHESTRATION-008",
@@ -812,7 +848,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-023": {
       "parent": "SY-ORCHESTRATION-009",
@@ -833,7 +869,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-025": {
       "parent": [
@@ -847,7 +883,7 @@
       "stage": "50b",
       "module": "ORCHESTRATION",
       "tier": "tracked",
-      "status": "not_started"
+      "status": "passed"
     },
     "TEST-ORCHESTRATION-026": {
       "parent": [],
@@ -1026,6 +1062,80 @@
       "parent": [
         "TEST-ORCHESTRATION-012",
         "TEST-ORCHESTRATION-013"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-017": {
+      "parent": [
+        "TEST-ORCHESTRATION-013",
+        "TEST-ORCHESTRATION-016"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-019": {
+      "parent": [
+        "TEST-ORCHESTRATION-019",
+        "TEST-ORCHESTRATION-024",
+        "TEST-ORCHESTRATION-025"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-020": {
+      "parent": [
+        "TEST-ORCHESTRATION-003",
+        "TEST-ORCHESTRATION-009",
+        "TEST-ORCHESTRATION-010",
+        "TEST-ORCHESTRATION-012",
+        "TEST-ORCHESTRATION-013",
+        "TEST-ORCHESTRATION-016",
+        "TEST-ORCHESTRATION-018",
+        "TEST-ORCHESTRATION-019",
+        "TEST-ORCHESTRATION-020",
+        "TEST-ORCHESTRATION-021",
+        "TEST-ORCHESTRATION-022",
+        "TEST-ORCHESTRATION-024",
+        "TEST-ORCHESTRATION-025"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-024": {
+      "parent": [],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-021": {
+      "parent": [],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-022": {
+      "parent": [
+        "TEST-ORCHESTRATION-015"
+      ],
+      "stage": "50d",
+      "module": "ORCHESTRATION",
+      "tier": "tracked",
+      "status": "done"
+    },
+    "TASK-ORCHESTRATION-023": {
+      "parent": [
+        "TEST-ORCHESTRATION-008"
       ],
       "stage": "50d",
       "module": "ORCHESTRATION",

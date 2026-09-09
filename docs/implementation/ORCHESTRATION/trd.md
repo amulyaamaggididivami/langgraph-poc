@@ -40,7 +40,7 @@ concrete to map a `TEST-ORCHESTRATION-NNN` against:
 | ID | Requirement | Traces to |
 |---|---|---|
 | TRD-ORCHESTRATION-001 | `PostgresSaver` writes a new checkpoint after every graph superstep, not just at `AwaitingReview` | decision-23, decision-27 |
-| TRD-ORCHESTRATION-002 | A call to `iface-business-db` or `iface-llm-provider` that exceeds 30s raises `event-integration-failure` rather than hanging indefinitely | decision-24 |
+| TRD-ORCHESTRATION-002 | A call to `iface-business-db` or `iface-llm-provider` that exceeds 50s raises `event-integration-failure` rather than hanging indefinitely | decision-24 |
 | TRD-ORCHESTRATION-003 | `/chat` and `/review` respond with a valid `ag-ui-protocol` SSE event stream, served via `add_langgraph_fastapi_endpoint` | decision-25 |
 | TRD-ORCHESTRATION-004 | The `requests` table rejects any row with `decline_reason` set while `state != 'Declined'` | §Data Model (`decline_reason_only_when_declined` constraint) |
 | TRD-ORCHESTRATION-005 | The Reviewer's pending-list query is served by `idx_requests_awaiting_review` and returns exactly the rows where `state = 'AwaitingReview'` | §Persistence Constraints |
@@ -142,7 +142,7 @@ Events:
   - event-integration-failure :: External integration failed | kind: event | summary: "Reused from System." | spec: [§Idempotency and Failure Contracts](trd.md#idempotency-and-failure-contracts) | payload_shape: "which interface failed plus the bounded-wait timeout that was exceeded (decision-24)"
 Decisions:
   - decision-23 :: LangGraph's own PostgresSaver, not hand-rolled persistence | kind: decision | summary: "The Checkpoint Store wraps langgraph-checkpoint-postgres's PostgresSaver/AsyncPostgresSaver rather than custom Postgres read/write code." | spec: [§Persistence Constraints](trd.md#persistence-constraints) | alternatives: "Hand-rolled persistence (custom tables, custom serialization) was considered and rejected — PostgresSaver is the maintained, idiomatic mechanism for exactly this use case; reimplementing it would duplicate well-tested library code for no benefit." | reversal_trigger: "If langgraph-checkpoint-postgres's schema proves incompatible with a future LangGraph major version and no migration path exists, hand-rolled persistence becomes the fallback."
-  - decision-24 :: 30-second bounded wait for external calls | kind: decision | summary: "Both iface-business-db and iface-llm-provider calls are bounded to 30 seconds, satisfying constraint-integration-timeout." | spec: [§Idempotency and Failure Contracts](trd.md#idempotency-and-failure-contracts) | alternatives: "10 seconds was considered and rejected as too tight for LLM calls, which can legitimately take longer than a simple DB query; 30s balances failing fast against not cutting off a slow-but-working LLM response." | reversal_trigger: "If demo-day latency measurement (roadmap step-03a) shows 30s is routinely hit without genuine failure, raise the bound — do not lower it reactively without data."
+  - decision-24 :: 50-second bounded wait for external calls | kind: decision | summary: "Both iface-business-db and iface-llm-provider calls are bounded to 50 seconds, satisfying constraint-integration-timeout. Raised from the original 30 seconds (2026-09-09) — the reversal_trigger below fired directly during development, not at a future demo: a real Planner call hung 2.5+ minutes against the live LiteLLM proxy with no timeout applied at all, and 30s was independently observed to be routinely too tight for legitimately-slow real LLM responses." | spec: [§Idempotency and Failure Contracts](trd.md#idempotency-and-failure-contracts) | alternatives: "10 seconds was considered and rejected as too tight for LLM calls, which can legitimately take longer than a simple DB query; 30s was the original choice, revised to 50s once real usage showed it was too tight; going higher than 50s risks masking a genuinely hung call as ordinary latency." | reversal_trigger: "If latency measurement (roadmap step-03a, or the incident that already raised this once) shows 50s is still routinely hit without genuine failure, raise the bound again — do not lower it reactively without data."
   - decision-25 :: SSE via ag-ui-langgraph's add_langgraph_fastapi_endpoint | kind: decision | summary: "Both comp-chat-route and comp-review-route are implemented with ag-ui-langgraph's FastAPI helper (architecture decision-13), not a hand-rolled SSE endpoint." | spec: [§API Contracts](trd.md#api-contracts) | alternatives: "A hand-rolled StreamingResponse endpoint was considered and rejected — it would mean re-implementing AG-UI's event serialization and LangGraph state-to-event mapping that add_langgraph_fastapi_endpoint already provides." | reversal_trigger: "If ag-ui-langgraph's helper cannot express the two-route (chat vs review) separation cleanly, fall back to a hand-rolled endpoint for review only."
   - decision-26 :: One thin project-owned `requests` table, LangGraph owns checkpoint internals | kind: decision | summary: "A single requests table (DDL in §Data Model) tracks only the fields the Reviewer's pending-list query needs; it does not duplicate LangGraph's own checkpoint blob storage." | spec: [§Data Model](trd.md#data-model) | alternatives: "Querying LangGraph's internal checkpoint tables directly for the Reviewer's pending list was considered and rejected — those tables are private implementation detail of the checkpointer library, not shaped for business queries, and could change on a LangGraph upgrade (decision-23's reversal_trigger)." | reversal_trigger: "If langgraph-checkpoint-postgres ever exposes an official queryable view matching this need, drop the project-owned table in favor of it."
   - decision-27 :: LangGraph's own checkpoint history satisfies the trace-completeness budget | kind: decision | summary: "constraint-trace-completeness-budget (SY-007) is satisfied by PostgresSaver's built-in per-superstep checkpoint history, not a separate custom audit table." | spec: [§State Machines](trd.md#state-machines) | alternatives: "A dedicated request_transitions audit table (one row per transition) was considered and rejected as redundant — PostgresSaver already persists a new checkpoint at each graph superstep, which is already a full transition history retrievable via get_state_history." | reversal_trigger: "If get_state_history proves too slow or unwieldy for tracing at demo scale, add a lightweight audit table then, not preemptively."
@@ -554,7 +554,7 @@ recovery path still needs an explicit contract:
   run — `POST /chat` with an already-used `thread_id` resumes rather than
   starts fresh (LangGraph's own thread semantics).
 - **Retry semantics.** `iface-business-db` and `iface-llm-provider` calls
-  are retried zero times by this module — `decision-24`'s 30-second bound
+  are retried zero times by this module — `decision-24`'s 50-second bound
   is a *timeout*, not a retry budget. A timeout raises
   `event-integration-failure` and fails only that Request
   (`requirement-07`), never retried automatically (`constraint-no-silent-retry`,
@@ -660,7 +660,7 @@ POC assumes). Audit trail: the
 
 | NFR (from BRD/Architecture) | How this design satisfies it |
 |---|---|
-| Performance (no numeric SLA) | `decision-24`'s 30s bound keeps a hung external call from stalling a Request indefinitely; no further tuning designed for a POC |
+| Performance (no numeric SLA) | `decision-24`'s 50s bound keeps a hung external call from stalling a Request indefinitely; no further tuning designed for a POC |
 | Reliability (graceful failure handling) | `event-integration-failure` isolates one Request's failure (`requirement-07`); `constraint-no-silent-retry` prevents cascading retries |
 | Observability (100% trace) | `decision-27` — LangGraph's checkpoint history is the trace; `requests.updated_at` gives a business-level summary view |
 | Security (POC-appropriate, no hardening) | Unchanged — see §Security Design |
@@ -727,5 +727,5 @@ POC assumes). Audit trail: the
 
 Approved by: Vara
 Role:        PTL
-Date:        2026-09-08
-Hash:        a1a82475062a…
+Date:        2026-09-09
+Hash:        5df58959c697…

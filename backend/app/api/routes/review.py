@@ -24,10 +24,19 @@ compiled graph built against the same checkpointer sees the same
 threads (verified throughout TASK-ORCHESTRATION-013/014's testing —
 separate processes reading/resuming the same thread_id all agreed).
 
-The `already_decided` check below is the minimum needed for this route
-to behave correctly at all (resuming an already-resumed thread must not
-silently re-run anything) — TASK-ORCHESTRATION-017 owns hardening and
-dedicated tests for the shared error-schema path specifically.
+TASK-ORCHESTRATION-017 hardens the error path: both endpoints now catch
+unexpected exceptions and return the shared `ErrorResponse` schema
+rather than FastAPI's own default `{"detail": ...}` 500 body (verified
+this was a real gap, not a theoretical one — `list_pending()` had no
+exception handling at all before this). One honest limit that stays:
+once `decide()`'s `StreamingResponse` starts, its HTTP status and
+headers are already sent — an error that happens *inside*
+`event_generator()` (mid-stream) cannot become a differently-shaped
+JSON body at that point; only errors before streaming starts (`get_request`,
+`aget_state`, the already_decided/not_found checks) can. This is an SSE
+transport constraint, not something to work around inside this route —
+matching `/chat`'s already-documented deviation (a validation error
+there similarly can't retroactively change an in-flight stream).
 """
 
 from typing import Optional
@@ -50,6 +59,10 @@ def _error_response(code: str, message: str, *, status_code: int, retryable: boo
     return JSONResponse(status_code=status_code, content=body.model_dump())
 
 
+def _internal_error_response(exc: Exception) -> JSONResponse:
+    return _error_response("internal_error", str(exc), status_code=500, retryable=True)
+
+
 def register_review_route(app: FastAPI, *, checkpointer: Optional[BaseCheckpointSaver] = None) -> None:
     """Registers `POST /review` and `POST /review/{thread_id}/decision`
     on `app`."""
@@ -57,8 +70,11 @@ def register_review_route(app: FastAPI, *, checkpointer: Optional[BaseCheckpoint
     agent = LangGraphAgent(name="review", graph=graph)
 
     @app.post("/review")
-    async def list_pending() -> list[PendingReview]:
-        rows = await requests_repo.get_pending_reviews()
+    async def list_pending():
+        try:
+            rows = await requests_repo.get_pending_reviews()
+        except Exception as exc:  # TEST-ORCHESTRATION-016: same shape on failure as the other two endpoints
+            return _internal_error_response(exc)
         return [
             PendingReview(
                 thread_id=str(row["thread_id"]),
@@ -70,23 +86,26 @@ def register_review_route(app: FastAPI, *, checkpointer: Optional[BaseCheckpoint
 
     @app.post("/review/{thread_id}/decision")
     async def decide(thread_id: str, body: DecisionRequest, request: Request):
-        row = await requests_repo.get_request(thread_id)
-        if row is None:
-            return _error_response("not_found", f"No request found for thread_id {thread_id}", status_code=404)
-        if row["state"] != "AwaitingReview":
-            return _error_response(
-                "already_decided",
-                f"Thread {thread_id} is already {row['state']}, not AwaitingReview",
-                status_code=409,
-            )
+        try:
+            row = await requests_repo.get_request(thread_id)
+            if row is None:
+                return _error_response("not_found", f"No request found for thread_id {thread_id}", status_code=404)
+            if row["state"] != "AwaitingReview":
+                return _error_response(
+                    "already_decided",
+                    f"Thread {thread_id} is already {row['state']}, not AwaitingReview",
+                    status_code=409,
+                )
 
-        config = {"configurable": {"thread_id": thread_id}}
-        state_snapshot = await graph.aget_state(config)
-        if not state_snapshot.interrupts:
-            return _error_response(
-                "not_found", f"No pending interrupt for thread_id {thread_id}", status_code=404
-            )
-        interrupt_id = state_snapshot.interrupts[0].id
+            config = {"configurable": {"thread_id": thread_id}}
+            state_snapshot = await graph.aget_state(config)
+            if not state_snapshot.interrupts:
+                return _error_response(
+                    "not_found", f"No pending interrupt for thread_id {thread_id}", status_code=404
+                )
+            interrupt_id = state_snapshot.interrupts[0].id
+        except Exception as exc:
+            return _internal_error_response(exc)
 
         run_input = RunAgentInput(
             threadId=thread_id,

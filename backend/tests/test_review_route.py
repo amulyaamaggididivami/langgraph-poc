@@ -28,6 +28,7 @@ from psycopg_pool import AsyncConnectionPool
 from app.api.routes.review import register_review_route
 from app.graph.graph import build_graph
 from app.persistence import requests_repo
+from app.schemas.review import ErrorResponse
 
 
 def _postgres_reachable(conn_string: str) -> bool:
@@ -188,6 +189,26 @@ async def test_second_decision_on_the_same_thread_is_already_decided(checkpointe
     assert body["code"] == "already_decided"
 
 
+async def test_second_decision_never_touches_the_graph_or_the_row_again(checkpointer, app_client):
+    # TEST-ORCHESTRATION-013's "not a duplicate SSE delivery": the second
+    # attempt is rejected by the requests-table state check alone, before
+    # ever resuming the graph again — proven by the row staying byte-for-byte
+    # unchanged (including updated_at) across the rejected second call,
+    # not just by checking the HTTP status of the second call.
+    thread_id = str(uuid.uuid4())
+    await _seed_awaiting_review(checkpointer, thread_id, "total sales question")
+    await app_client.post(f"/review/{thread_id}/decision", json={"decision": "approve"})
+
+    row_before = await requests_repo.get_request(thread_id)
+
+    second = await app_client.post(f"/review/{thread_id}/decision", json={"decision": "reject"})
+
+    row_after = await requests_repo.get_request(thread_id)
+    assert second.status_code == 409
+    assert row_after["state"] == row_before["state"] == "Delivered"  # unchanged — reject never applied
+    assert row_after["updated_at"] == row_before["updated_at"]
+
+
 async def test_decision_on_an_unknown_thread_is_not_found(app_client):
     response = await app_client.post(
         f"/review/{uuid.uuid4()}/decision", json={"decision": "approve"}
@@ -195,3 +216,39 @@ async def test_decision_on_an_unknown_thread_is_not_found(app_client):
 
     assert response.status_code == 404
     assert response.json()["code"] == "not_found"
+
+
+async def test_pending_list_returns_shared_error_schema_on_db_failure(app_client, monkeypatch):
+    # TEST-ORCHESTRATION-016: /review's failure path was previously
+    # unhandled — a DB error fell through to FastAPI's own default
+    # {"detail": ...} 500 body, not this project's shared error schema.
+    async def _boom():
+        raise RuntimeError("connection to synergy Postgres lost")
+
+    monkeypatch.setattr(requests_repo, "get_pending_reviews", _boom)
+
+    response = await app_client.post("/review", json={})
+
+    assert response.status_code == 500
+    ErrorResponse(**response.json())  # raises if the shape doesn't match
+    assert response.json()["code"] == "internal_error"
+
+
+async def test_all_three_error_triggers_share_the_same_schema(checkpointer, app_client, monkeypatch):
+    # TEST-ORCHESTRATION-016: one failure trigger per endpoint on the
+    # /review surface, all validated against the same ErrorResponse model.
+    thread_id = str(uuid.uuid4())
+    await _seed_awaiting_review(checkpointer, thread_id, "total sales question")
+    await app_client.post(f"/review/{thread_id}/decision", json={"decision": "approve"})
+
+    already_decided = await app_client.post(f"/review/{thread_id}/decision", json={"decision": "approve"})
+    not_found = await app_client.post(f"/review/{uuid.uuid4()}/decision", json={"decision": "approve"})
+
+    async def _boom():
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(requests_repo, "get_pending_reviews", _boom)
+    internal_error = await app_client.post("/review", json={})
+
+    for response in (already_decided, not_found, internal_error):
+        ErrorResponse(**response.json())  # every one must validate against the same schema

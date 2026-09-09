@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Message } from '@ag-ui/client'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -16,6 +17,7 @@ function makeFakeAgent() {
   let onMessagesChanged: ((params: { messages: Message[] }) => void) | undefined
 
   const agent: ChatAgent = {
+    threadId: 'fake-thread-id',
     messages,
     addMessage(m) {
       messages.push(m)
@@ -36,12 +38,20 @@ function makeFakeAgent() {
   }
 }
 
+// ChatForm is a controlled component now (App.tsx owns `messages` so it
+// can also be updated from ReviewPage's resume) — this harness plays
+// App.tsx's role of holding that state for the test.
+function ControlledChatForm({ agent }: { agent: ChatAgent }) {
+  const [messages, setMessages] = useState<Message[]>([])
+  return <ChatForm agent={agent} messages={messages} onMessagesChange={setMessages} />
+}
+
 describe('ChatForm', () => {
   it('renders each streamed update in order, ending on the final response', async () => {
     const user = userEvent.setup()
     const fake = makeFakeAgent()
 
-    render(<ChatForm createAgent={() => fake.agent} />)
+    render(<ControlledChatForm agent={fake.agent} />)
 
     await user.type(screen.getByPlaceholderText('Say something'), 'total sales?')
     await user.click(screen.getByRole('button', { name: /send/i }))

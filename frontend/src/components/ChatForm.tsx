@@ -1,17 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { Message } from '@ag-ui/client'
 
-import { createChatAgent, type ChatAgent } from '../api/chatApi'
+import type { ChatAgent } from '../api/chatApi'
 
 interface ChatFormProps {
-  /** Overridable for tests — defaults to a real HttpAgent-backed agent. */
-  createAgent?: (threadId: string) => ChatAgent
+  agent: ChatAgent
+  messages: Message[]
+  onMessagesChange: (messages: Message[]) => void
 }
 
-export function ChatForm({ createAgent = createChatAgent }: ChatFormProps) {
-  const agent = useMemo(() => createAgent(crypto.randomUUID()), [createAgent])
+export function ChatForm({ agent, messages, onMessagesChange }: ChatFormProps) {
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -21,12 +20,12 @@ export function ChatForm({ createAgent = createChatAgent }: ChatFormProps) {
     setLoading(true)
 
     agent.addMessage({ id: crypto.randomUUID(), role: 'user', content: text })
-    setMessages([...agent.messages])
+    onMessagesChange([...agent.messages])
 
     try {
       await agent.runAgent(
         {},
-        { onMessagesChanged: ({ messages: updated }) => setMessages([...updated]) },
+        { onMessagesChanged: ({ messages: updated }) => onMessagesChange([...updated]) },
       )
     } finally {
       setLoading(false)
@@ -34,7 +33,7 @@ export function ChatForm({ createAgent = createChatAgent }: ChatFormProps) {
   }
 
   return (
-    <section style={{ maxWidth: 480, margin: '4rem auto', textAlign: 'center' }}>
+    <section style={{ maxWidth: 560, margin: '0 auto', padding: '2rem 1rem', textAlign: 'center' }}>
       <h1>langgraph-poc</h1>
       <ul style={{ listStyle: 'none', padding: 0, textAlign: 'left' }}>
         {messages.map((m) => (
@@ -49,6 +48,7 @@ export function ChatForm({ createAgent = createChatAgent }: ChatFormProps) {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Say something"
+          style={{ width: '70%' }}
         />
         <button type="submit" disabled={loading || !message}>
           {loading ? 'Sending...' : 'Send'}
